@@ -33,12 +33,13 @@ function ProtectedRoutes() {
 
   const ready = isCompanionReady()
   if (
-    ready === false &&
+    !ready &&
     location.pathname !== '/setup' &&
     location.pathname !== '/ako' &&
+    location.pathname !== '/' &&
     !location.pathname.startsWith('/onboarding')
   ) {
-    // Allow home to show CTA, but deep links to bakal still work after soft prompt
+    return <Navigate to="/" replace />
   }
 
   return (

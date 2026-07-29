@@ -306,8 +306,10 @@ export function Meals() {
               type="button"
               className="g-btn-ghost !px-2"
               onClick={() => {
-                persist(foods.filter((f) => f.id !== food.id))
-                showToast('deleted')
+                if (window.confirm(`Delete "${food.name}"?`)) {
+                  persist(foods.filter((f) => f.id !== food.id))
+                  showToast('deleted')
+                }
               }}
             >
               <Trash2 size={14} />

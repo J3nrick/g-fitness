@@ -244,6 +244,16 @@ export function FoodScannerModal({ onClose, onLogMeal }: Props) {
                 <Check size={18} />
                 LOG MEAL NOW
               </button>
+              <button
+                type="button"
+                className="g-btn-ghost w-full text-xs"
+                onClick={() => {
+                  setResult(null)
+                  setPreview(null)
+                }}
+              >
+                Scan Again
+              </button>
             </div>
           )}
 

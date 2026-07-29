@@ -216,7 +216,11 @@ export function Ako() {
         SAVE + REBUILD PLAN
       </button>
 
-      <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/setup')}>
+      <button type="button" className="g-btn-ghost w-full" onClick={() => {
+        if (window.confirm('Redo setup? This will regenerate your workout plan.')) {
+          navigate('/setup')
+        }
+      }}>
         Redo full setup
       </button>
 

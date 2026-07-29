@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Check, Dices } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
 import { DEFAULT_COACH, generateKatamad } from '../lib/coach'
 import { demoGet, demoSet, todayISO } from '../lib/demoMode'
@@ -9,6 +10,7 @@ import { ExerciseGuide } from '../components/workout/ExerciseGuide'
 import type { DailyLog } from '../types/database.types'
 
 export function Katamad() {
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const coach = getCoachProfile() ?? DEFAULT_COACH
   const [challenge, setChallenge] = useState(() => generateKatamad(coach))
@@ -22,6 +24,9 @@ export function Katamad() {
   )
 
   function roll() {
+    if (started && Object.keys(done).length > 0) {
+      if (!window.confirm('Reset progress and roll a new challenge?')) return
+    }
     setChallenge(generateKatamad(coach))
     setDone({})
     setStarted(false)
@@ -42,6 +47,7 @@ export function Katamad() {
     const updated = { ...daily, workout_completed: true }
     demoSet(`daily_${date}`, { ...updated, discipline_score: calcDisciplineScore(updated) })
     showToast('katamad_done')
+    navigate('/', { replace: true })
   }
 
   return (

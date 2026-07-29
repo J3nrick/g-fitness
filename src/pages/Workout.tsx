@@ -463,8 +463,10 @@ export function Workout() {
                   type="button"
                   className="text-xs font-bold text-traffic uppercase"
                   onClick={() => {
-                    persistPlans(plans.filter((p) => p.id !== plan.id))
-                    showToast('deleted')
+                    if (window.confirm(`Delete "${plan.name}"? This cannot be undone.`)) {
+                      persistPlans(plans.filter((p) => p.id !== plan.id))
+                      showToast('deleted')
+                    }
                   }}
                 >
                   Delete workout
@@ -562,8 +564,10 @@ export function Workout() {
                   type="button"
                   className="g-btn-ghost !px-2"
                   onClick={() => {
-                    persistExercises(exercises.filter((e) => e.id !== ex.id))
-                    showToast('deleted')
+                    if (window.confirm(`Delete "${ex.name}"?`)) {
+                      persistExercises(exercises.filter((e) => e.id !== ex.id))
+                      showToast('deleted')
+                    }
                   }}
                 >
                   <Trash2 size={14} />

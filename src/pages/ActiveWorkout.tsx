@@ -6,6 +6,7 @@ import { demoGet, demoSet, todayISO } from '../lib/demoMode'
 import { calcDisciplineScore } from '../lib/discipline'
 import { formatDuration } from '../lib/utils'
 import { getPlans, uid } from '../lib/store'
+import { RestTimerPill } from '../components/ui/RestTimerPill'
 import type { DailyLog } from '../types/database.types'
 
 interface LiveSet {
@@ -24,6 +25,9 @@ export function ActiveWorkout() {
   const [startedAt] = useState(() => Date.now())
   const [elapsed, setElapsed] = useState(0)
   const [rows, setRows] = useState<LiveSet[]>([])
+  const [restActive, setRestActive] = useState(false)
+  const [restSeconds, setRestSeconds] = useState(90)
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false)
 
   useEffect(() => {
     const plan = planId ? getPlans().find((p) => p.id === planId) : null
@@ -39,6 +43,7 @@ export function ActiveWorkout() {
             done: false,
           })
         }
+        if (item.rest_seconds) setRestSeconds(item.rest_seconds)
       })
       setRows(seeded)
     } else {
@@ -62,7 +67,10 @@ export function ActiveWorkout() {
       prev.map((r) => {
         if (r.id !== id) return r
         const next = !r.done
-        if (next) showToast('set')
+        if (next) {
+          showToast('set')
+          setRestActive(true)
+        }
         return { ...r, done: next }
       }),
     )
@@ -121,6 +129,16 @@ export function ActiveWorkout() {
     navigate('/', { replace: true })
   }
 
+  function tryLeave() {
+    if (doneCount > 0) {
+      if (window.confirm('You have completed sets. Leave without finishing?')) {
+        navigate('/bakal')
+      }
+    } else {
+      navigate('/bakal')
+    }
+  }
+
   return (
     <div className="g-page">
       <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard flex items-end justify-between">
@@ -130,7 +148,7 @@ export function ActiveWorkout() {
         </div>
         <div className="text-right">
           <p className="font-mono text-2xl font-bold">{formatDuration(elapsed)}</p>
-          <p className="text-xs">{doneCount} sets</p>
+          <p className="text-xs">{doneCount}/{rows.length} sets</p>
         </div>
       </header>
 
@@ -203,13 +221,46 @@ export function ActiveWorkout() {
         Add Set
       </button>
 
-      <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={finish}>
-        FINISH
-      </button>
+      {!showFinishConfirm ? (
+        <button
+          type="button"
+          className="g-btn-primary w-full text-xl py-4"
+          onClick={() => {
+            if (doneCount === 0) {
+              if (window.confirm('No sets completed. Finish anyway?')) finish()
+            } else {
+              setShowFinishConfirm(true)
+            }
+          }}
+        >
+          FINISH ({doneCount}/{rows.length})
+        </button>
+      ) : (
+        <div className="g-card space-y-3">
+          <p className="font-display text-lg text-center">WORKOUT COMPLETE?</p>
+          <p className="text-xs text-asphalt text-center">
+            {doneCount} sets done · {formatDuration(elapsed)}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" className="g-btn-ghost" onClick={() => setShowFinishConfirm(false)}>
+              Keep Going
+            </button>
+            <button type="button" className="g-btn-primary" onClick={finish}>
+              DONE
+            </button>
+          </div>
+        </div>
+      )}
 
-      <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/bakal')}>
+      <button type="button" className="g-btn-ghost w-full" onClick={tryLeave}>
         Back to Library
       </button>
+
+      <RestTimerPill
+        active={restActive}
+        defaultSeconds={restSeconds}
+        onDismiss={() => setRestActive(false)}
+      />
     </div>
   )
 }
