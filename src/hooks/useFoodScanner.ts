@@ -140,7 +140,7 @@ export function useFoodScanner() {
       let lastError = ''
       for (const model of GEMINI_MODELS) {
         const result = await callGemini(apiKey, model, base64Image)
-        if (!result.ok) {
+        if (result.ok === false) {
           lastError = `API ${result.status}: ${result.body.slice(0, 180)}`
           // Invalid key / permission — don't bother trying other models
           if (result.status === 400 || result.status === 401 || result.status === 403) {
