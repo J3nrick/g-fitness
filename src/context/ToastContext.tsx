@@ -7,9 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { toastFor } from '../lib/utils'
-import type { CoachingStyle } from '../types/database.types'
 import { ToastViewport, type ToastItem } from '../components/ui/Toast'
-import { useAuth } from './AuthContext'
 
 interface ToastContextValue {
   showToast: (key: string, override?: string) => void
@@ -18,7 +16,6 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const { profile } = useAuth()
   const [toasts, setToasts] = useState<ToastItem[]>([])
 
   const dismiss = useCallback((id: string) => {
@@ -27,13 +24,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const showToast = useCallback(
     (key: string, override?: string) => {
-      const style = (profile?.coaching_style ?? 'tropa') as CoachingStyle
-      const message = override ?? toastFor(style, key)
+      const message = override ?? toastFor(null, key)
       const id = `${Date.now()}-${Math.random()}`
       setToasts((prev) => [...prev, { id, message }])
       window.setTimeout(() => dismiss(id), 3200)
     },
-    [profile?.coaching_style, dismiss],
+    [dismiss],
   )
 
   const value = useMemo(() => ({ showToast }), [showToast])

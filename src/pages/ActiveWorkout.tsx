@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Check, Plus } from 'lucide-react'
+import { Check, Plus, Trash2 } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 import { demoGet, demoSet, todayISO } from '../lib/demoMode'
 import { calcDisciplineScore } from '../lib/discipline'
@@ -82,6 +82,11 @@ export function ActiveWorkout() {
     ])
   }
 
+  function deleteRow(id: string) {
+    setRows((prev) => prev.filter((r) => r.id !== id))
+    showToast('delete_set')
+  }
+
   function finish() {
     const date = todayISO()
     const daily = demoGet<DailyLog | null>(`daily_${date}`, null) ?? {
@@ -98,6 +103,20 @@ export function ActiveWorkout() {
       ...updated,
       discipline_score: calcDisciplineScore(updated),
     })
+
+    const completedSets = rows.filter((r) => r.done)
+    if (completedSets.length > 0) {
+      const historyEntry = {
+        id: crypto.randomUUID(),
+        date,
+        elapsed,
+        planId: planId ?? undefined,
+        sets: completedSets.map((r) => ({ name: r.name, weight: r.weight, reps: r.reps })),
+      }
+      const history = demoGet<unknown[]>('workout_history', [])
+      demoSet('workout_history', [historyEntry, ...history].slice(0, 100))
+    }
+
     showToast('workout_done')
     navigate('/', { replace: true })
   }
@@ -132,6 +151,11 @@ export function ActiveWorkout() {
                 }
               />
               <span className="font-mono text-xs text-asphalt">#{idx + 1}</span>
+              {rows.length > 1 && (
+                <button type="button" className="g-btn-ghost !p-1" onClick={() => deleteRow(row.id)}>
+                  <Trash2 size={12} />
+                </button>
+              )}
             </div>
             <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
               <input

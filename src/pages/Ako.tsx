@@ -20,6 +20,13 @@ import {
   saveWeekTemplate,
   type UserProfileExt,
 } from '../lib/store'
+import {
+  getCoachingStyle,
+  getIntensity,
+  setCoachingStyle,
+  setIntensity,
+} from '../lib/messages'
+import type { CoachingStyle } from '../types/database.types'
 
 export function Ako() {
   const { signOut, bypass } = useAuth()
@@ -28,6 +35,8 @@ export function Ako() {
   const existing = getCoachProfile()
   const [coach, setCoach] = useState<CoachProfile>(existing ?? { ...DEFAULT_COACH, name: getExtProfile().nickname })
   const [ext, setExt] = useState<UserProfileExt>(getExtProfile)
+  const [coachStyle, setCoachStyle] = useState<CoachingStyle>(getCoachingStyle)
+  const [intensity, setIntensityState] = useState<'mild' | 'medium' | 'unfiltered'>(getIntensity)
 
   function patchCoach<K extends keyof CoachProfile>(key: K, value: CoachProfile[K]) {
     setCoach((prev) => ({ ...prev, [key]: value }))
@@ -158,14 +167,49 @@ export function Ako() {
       </div>
 
       <div className="g-card space-y-3">
-        <p className="font-display text-xl">VOICE</p>
-        <button
-          type="button"
-          className={`g-btn w-full py-3 ${coach.tropa_mode ? 'bg-jeepney text-dirty shadow-hard' : 'bg-dirty shadow-hard'}`}
-          onClick={() => patchCoach('tropa_mode', !coach.tropa_mode)}
-        >
-          Tropa Mode: {coach.tropa_mode ? 'ON' : 'OFF'}
-        </button>
+        <p className="font-display text-xl">COACHING STYLE</p>
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            ['chill', '🌱', 'Chill'],
+            ['tropa', '🤝', 'Tropa'],
+            ['real_talk', '🔥', 'Real Talk'],
+          ] as [CoachingStyle, string, string][]).map(([val, emoji, label]) => (
+            <button
+              key={val}
+              type="button"
+              className={`g-btn py-3 text-center ${coachStyle === val ? 'bg-jeepney text-dirty shadow-hard' : 'bg-dirty shadow-hardSm'}`}
+              onClick={() => {
+                setCoachStyle(val)
+                setCoachingStyle(val)
+                patchCoach('tropa_mode', val !== 'chill')
+                showToast('style_changed', `${emoji} ${label} mode activated`)
+              }}
+            >
+              <span className="text-lg block">{emoji}</span>
+              <span className="text-xs font-display">{label}</span>
+            </button>
+          ))}
+        </div>
+        {coachStyle === 'real_talk' && (
+          <>
+            <p className="g-label mt-2">Intensity</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['mild', 'medium', 'unfiltered'] as const).map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  className={`g-btn py-2 text-xs font-display uppercase ${intensity === lvl ? 'bg-traffic text-dirty shadow-hard' : 'bg-dirty shadow-hardSm'}`}
+                  onClick={() => {
+                    setIntensityState(lvl)
+                    setIntensity(lvl)
+                  }}
+                >
+                  {lvl}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={save}>

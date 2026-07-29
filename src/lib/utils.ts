@@ -1,5 +1,4 @@
-import type { CoachingStyle } from '../types/database.types'
-import { getExtProfile } from './store'
+import { getMessage, getCoachingStyle, type MessageEvent } from './messages'
 
 export function todayISO(): string {
   return new Date().toISOString().slice(0, 10)
@@ -7,9 +6,10 @@ export function todayISO(): string {
 
 export function getGreeting(): string {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good Morning.'
-  if (hour < 18) return 'Good Afternoon.'
-  return 'Good Evening.'
+  const style = getCoachingStyle()
+  if (hour < 12) return getMessage('morning', style)
+  if (hour < 18) return getMessage('afternoon', style)
+  return getMessage('late_night', style)
 }
 
 export function formatDuration(seconds: number): string {
@@ -18,61 +18,36 @@ export function formatDuration(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-type ToastKey =
-  | 'water'
-  | 'protein'
-  | 'meal'
-  | 'set'
-  | 'workout_done'
-  | 'weight'
-  | 'style_changed'
-  | 'sleep'
-  | 'delete_set'
-  | 'pr'
-  | 'katamad_done'
-  | 'saved'
-  | 'deleted'
-
-const SOFT: Record<ToastKey, string> = {
-  water: 'Tubig in. Solid.',
-  protein: 'Protein logged. Tuloy lang.',
-  meal: 'Kain logged. Ayos.',
-  set: 'Set done. Isa pa.',
-  workout_done: 'Ayos. Hindi ka nagpatalo ngayon.',
-  weight: 'Timbang saved.',
-  style_changed: 'Style updated.',
-  sleep: 'Sleep checked. Recovery matters.',
-  delete_set: 'Set removed.',
-  pr: 'Lakas! Dagdag bakal na naman.',
-  katamad_done: 'Kahit tinamad ka, gumalaw ka pa rin. Panalo ‘yan.',
-  saved: 'Saved. G!',
-  deleted: 'Deleted.',
+const EVENT_MAP: Record<string, MessageEvent> = {
+  water: 'water_goal',
+  protein: 'protein_hit',
+  meal: 'meal_logged',
+  set: 'set_done',
+  workout_done: 'workout_finished',
+  weight: 'weight_logged',
+  style_changed: 'saved',
+  sleep: 'sleep_hit',
+  delete_set: 'deleted',
+  pr: 'personal_record',
+  katamad_done: 'katamad_done',
+  saved: 'saved',
+  deleted: 'deleted',
+  scan_success: 'scan_success',
+  scan_failed: 'scan_failed',
+  plan_generated: 'plan_generated',
+  workout_started: 'workout_started',
+  first_workout: 'first_workout',
+  streak_3: 'streak_3',
+  streak_7: 'streak_7',
+  streak_14: 'streak_14',
+  streak_30: 'streak_30',
+  missed_workout: 'missed_workout',
+  rest_day: 'rest_day',
+  welcome: 'welcome',
 }
 
-const TROPA: Record<ToastKey, string> = {
-  water: 'Inom! Wag puro kape.',
-  protein: 'Ayan, protein. Hindi puro kanin.',
-  meal: 'Kain! Tara continue.',
-  set: 'Set done! Isa pa, tropa.',
-  workout_done: 'Solid! Heto ang sinasabing disiplina.',
-  weight: 'Timbang saved. Harapin mo.',
-  style_changed: 'Tropa mode on.',
-  sleep: 'Tulog marked. Bawi muscles.',
-  delete_set: 'Binura? Okay — ayusin mo lang.',
-  pr: 'Lakas! Sino nagturo sa’yo niyan?',
-  katamad_done: 'Tinamad pero gumalaw. Panalo pa rin.',
-  saved: 'Saved. Walang drama.',
-  deleted: 'Gone. Next.',
+export function toastFor(_style: unknown, key: string): string {
+  const style = getCoachingStyle()
+  const event = EVENT_MAP[key] ?? 'saved'
+  return getMessage(event, style)
 }
-
-export function toastFor(style: CoachingStyle | null | undefined, key: string): string {
-  const tropa = getExtProfile().tropa_mode || style === 'real_talk' || style === 'tropa'
-  const pack = tropa ? TROPA : SOFT
-  return pack[key as ToastKey] ?? 'Done.'
-}
-
-export const PERSONA_TOASTS = {
-  chill: SOFT,
-  tropa: TROPA,
-  real_talk: TROPA,
-} as const

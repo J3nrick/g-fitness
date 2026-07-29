@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Camera, Pencil, Plus, Star, Trash2 } from 'lucide-react'
+import { Camera, Copy, Pencil, Plus, Search, Star, Trash2, X } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 import { demoGet, demoSet, todayISO } from '../lib/demoMode'
 import { getExtProfile, getFoods, newEmptyFood, saveFoods, type UserFood, uid } from '../lib/store'
@@ -22,6 +22,7 @@ export function Meals() {
   )
   const [editing, setEditing] = useState<UserFood | null>(null)
   const [showScanner, setShowScanner] = useState(false)
+  const [query, setQuery] = useState('')
 
   const totals = useMemo(
     () =>
@@ -30,12 +31,21 @@ export function Meals() {
           const food = log.food ?? foods.find((f) => f.id === log.food_id)
           acc.calories += food?.calories ?? 0
           acc.protein += food?.protein ?? 0
+          acc.carbs += food?.carbs ?? 0
+          acc.fat += food?.fat ?? 0
           return acc
         },
-        { calories: 0, protein: 0 },
+        { calories: 0, protein: 0, carbs: 0, fat: 0 },
       ),
     [logs, foods],
   )
+
+  const filteredFoods = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return [...foods]
+      .filter((f) => !q || f.name.toLowerCase().includes(q))
+      .sort((a, b) => Number(b.is_favorite) - Number(a.is_favorite) || a.name.localeCompare(b.name))
+  }, [foods, query])
 
   function persist(next: UserFood[]) {
     setFoods(next)
@@ -43,6 +53,8 @@ export function Meals() {
   }
 
   function handleScanMeal(items: ScannedFood[]) {
+    const newLogs = [...logs]
+    const newFoods = [...foods]
     for (const item of items) {
       const food: UserFood = {
         id: uid(),
@@ -53,22 +65,20 @@ export function Meals() {
         fat: item.fat,
         is_favorite: false,
       }
-      const exists = foods.some((f) => f.name.toLowerCase() === food.name.toLowerCase())
-      if (!exists) {
-        foods.push(food)
-        saveFoods([...foods])
-        setFoods([...foods])
+      if (!newFoods.some((f) => f.name.toLowerCase() === food.name.toLowerCase())) {
+        newFoods.push(food)
       }
-      const entry: MealEntry = {
+      newLogs.unshift({
         id: uid(),
         food_id: food.id,
         food,
         consumed_at: new Date().toISOString(),
-      }
-      logs.unshift(entry)
+      })
     }
-    setLogs([...logs])
-    demoSet(`meals_${todayISO()}`, logs)
+    saveFoods(newFoods)
+    setFoods(newFoods)
+    setLogs(newLogs)
+    demoSet(`meals_${todayISO()}`, newLogs)
     showToast('meal', `AI Scan: +${items.length} food items logged`)
   }
 
@@ -82,7 +92,20 @@ export function Meals() {
     const next = [entry, ...logs]
     setLogs(next)
     demoSet(`meals_${todayISO()}`, next)
-    showToast('meal', `+${food.protein}g protein · ${food.name}`)
+    showToast('meal')
+  }
+
+  function removeMealLog(id: string) {
+    const next = logs.filter((l) => l.id !== id)
+    setLogs(next)
+    demoSet(`meals_${todayISO()}`, next)
+    showToast('deleted')
+  }
+
+  function duplicateFood(food: UserFood) {
+    const dup: UserFood = { ...food, id: uid(), name: `${food.name} (Copy)` }
+    persist([...foods, dup])
+    showToast('saved', `${dup.name} duplicated`)
   }
 
   function saveEditor() {
@@ -135,7 +158,7 @@ export function Meals() {
           onClick={() => setEditing({ ...editing, is_favorite: !editing.is_favorite })}
         >
           <Star size={14} className="inline mr-2" />
-          Favorite
+          {editing.is_favorite ? 'Favorited' : 'Favorite'}
         </button>
         <div className="grid grid-cols-2 gap-3">
           <button type="button" className="g-btn-ghost" onClick={() => setEditing(null)}>
@@ -175,37 +198,75 @@ export function Meals() {
         </div>
       </header>
 
-      <div className="g-card grid grid-cols-2 gap-3">
+      <div className="g-card grid grid-cols-4 gap-2">
         <div>
           <p className="g-label">Calories</p>
-          <p className="font-mono text-2xl font-bold">
+          <p className="font-mono text-xl font-bold">
             {Math.round(totals.calories)}
-            <span className="text-sm text-asphalt font-sans">/{profile.daily_calories}</span>
+            <span className="text-[10px] text-asphalt font-sans block">/{profile.daily_calories}</span>
           </p>
-          <div className="mt-2 h-3 border-3 border-jet bg-dirty">
+          <div className="mt-1 h-2 border-2 border-jet bg-dirty">
             <div
               className="h-full bg-jeepney"
-              style={{
-                width: `${Math.min(100, (totals.calories / profile.daily_calories) * 100)}%`,
-              }}
+              style={{ width: `${Math.min(100, (totals.calories / profile.daily_calories) * 100)}%` }}
             />
           </div>
         </div>
         <div>
           <p className="g-label">Protein</p>
-          <p className="font-mono text-2xl font-bold">
-            {Math.round(totals.protein)}
-            <span className="text-sm text-asphalt font-sans">/{profile.daily_protein}g</span>
+          <p className="font-mono text-xl font-bold text-malunggay">
+            {Math.round(totals.protein)}g
           </p>
-          <div className="mt-2 h-3 border-3 border-jet bg-dirty">
+          <div className="mt-1 h-2 border-2 border-jet bg-dirty">
             <div
               className="h-full bg-malunggay"
-              style={{
-                width: `${Math.min(100, (totals.protein / profile.daily_protein) * 100)}%`,
-              }}
+              style={{ width: `${Math.min(100, (totals.protein / profile.daily_protein) * 100)}%` }}
             />
           </div>
         </div>
+        <div>
+          <p className="g-label">Carbs</p>
+          <p className="font-mono text-xl font-bold text-mango">{Math.round(totals.carbs)}g</p>
+        </div>
+        <div>
+          <p className="g-label">Fat</p>
+          <p className="font-mono text-xl font-bold text-traffic">{Math.round(totals.fat)}g</p>
+        </div>
+      </div>
+
+      {/* Today's logged meals */}
+      {logs.length > 0 && (
+        <div className="g-card !p-0 overflow-hidden">
+          <div className="bg-jet text-dirty px-4 py-2 font-display text-lg">TODAY&apos;S MEALS</div>
+          <ul>
+            {logs.map((log) => {
+              const food = log.food ?? foods.find((f) => f.id === log.food_id)
+              return (
+                <li key={log.id} className="border-t-3 border-jet px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold">{food?.name ?? 'Unknown'}</p>
+                    <p className="text-xs text-asphalt">
+                      {food?.calories ?? 0} kcal · P{food?.protein ?? 0} C{food?.carbs ?? 0} F{food?.fat ?? 0}
+                    </p>
+                  </div>
+                  <button type="button" className="g-btn-ghost !p-1" onClick={() => removeMealLog(log.id)}>
+                    <X size={14} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
+
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-asphalt" />
+        <input
+          className="g-input !pl-9"
+          placeholder="Search foods..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
 
       <button type="button" className="g-btn-accent w-full" onClick={() => setEditing(newEmptyFood())}>
@@ -213,38 +274,46 @@ export function Meals() {
         Add Food
       </button>
 
+      {filteredFoods.length === 0 && (
+        <div className="g-card text-center py-8">
+          <p className="font-display text-lg">WALANG FOOD PA</p>
+          <p className="text-xs text-asphalt mt-1">Create your first food or use AI Snap.</p>
+        </div>
+      )}
+
       <div className="space-y-2">
-        {[...foods]
-          .sort((a, b) => Number(b.is_favorite) - Number(a.is_favorite))
-          .map((food) => (
-            <div key={food.id} className="g-card flex items-center gap-2 !py-3">
-              <button type="button" className="flex-1 text-left" onClick={() => logFood(food)}>
-                <p className="font-bold flex items-center gap-2">
-                  {food.is_favorite && <Star size={12} className="text-jeepney fill-jeepney" />}
-                  {food.name}
-                </p>
-                <p className="text-xs text-asphalt mt-0.5">
-                  {food.calories} kcal · P{food.protein} C{food.carbs} F{food.fat}
-                </p>
-              </button>
-              <button type="button" className="g-btn-primary !px-3 !py-2 text-xs" onClick={() => logFood(food)}>
-                + Kain
-              </button>
-              <button type="button" className="g-btn-ghost !px-2" onClick={() => setEditing(food)}>
-                <Pencil size={14} />
-              </button>
-              <button
-                type="button"
-                className="g-btn-ghost !px-2"
-                onClick={() => {
-                  persist(foods.filter((f) => f.id !== food.id))
-                  showToast('deleted')
-                }}
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
+        {filteredFoods.map((food) => (
+          <div key={food.id} className="g-card flex items-center gap-2 !py-3">
+            <button type="button" className="flex-1 text-left" onClick={() => logFood(food)}>
+              <p className="font-bold flex items-center gap-2">
+                {food.is_favorite && <Star size={12} className="text-jeepney fill-jeepney" />}
+                {food.name}
+              </p>
+              <p className="text-xs text-asphalt mt-0.5">
+                {food.calories} kcal · P{food.protein} C{food.carbs} F{food.fat}
+              </p>
+            </button>
+            <button type="button" className="g-btn-primary !px-3 !py-2 text-xs" onClick={() => logFood(food)}>
+              + Kain
+            </button>
+            <button type="button" className="g-btn-ghost !px-2" onClick={() => setEditing(food)}>
+              <Pencil size={14} />
+            </button>
+            <button type="button" className="g-btn-ghost !px-2" onClick={() => duplicateFood(food)}>
+              <Copy size={14} />
+            </button>
+            <button
+              type="button"
+              className="g-btn-ghost !px-2"
+              onClick={() => {
+                persist(foods.filter((f) => f.id !== food.id))
+                showToast('deleted')
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   )

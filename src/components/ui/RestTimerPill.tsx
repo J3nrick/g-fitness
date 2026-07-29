@@ -4,7 +4,6 @@ import { X } from 'lucide-react'
 interface RestTimerPillProps {
   active: boolean
   defaultSeconds?: number
-  energetic?: boolean
   onDismiss?: () => void
 }
 
@@ -37,14 +36,12 @@ function playChime() {
 export function RestTimerPill({
   active,
   defaultSeconds = 90,
-  energetic = false,
   onDismiss,
 }: RestTimerPillProps) {
   const [secondsLeft, setSecondsLeft] = useState(defaultSeconds)
   const [total, setTotal] = useState(defaultSeconds)
   const [running, setRunning] = useState(false)
   const chimed = useRef(false)
-  const stroke = energetic ? '#00F2FE' : '#4F8CFF'
 
   const restart = useCallback((secs: number) => {
     setTotal(secs)
@@ -73,42 +70,24 @@ export function RestTimerPill({
 
   if (!active) return null
 
-  const progress = total > 0 ? secondsLeft / total : 0
-  const radius = 16
-  const circumference = 2 * Math.PI * radius
-  const dash = circumference * progress
+  const barPct = total > 0 ? (secondsLeft / total) * 100 : 0
   const m = Math.floor(secondsLeft / 60)
   const s = secondsLeft % 60
-  const barPct = total > 0 ? (secondsLeft / total) * 100 : 0
 
   return (
     <div className="fixed bottom-28 right-4 z-[60] max-w-md pointer-events-none">
       <div className="pointer-events-auto ml-auto w-fit space-y-2">
-        <div className="g-float rounded-full px-3 py-2 flex items-center gap-3">
-          <svg width="40" height="40" viewBox="0 0 40 40" className="-rotate-90">
-            <circle cx="20" cy="20" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
-            <circle
-              cx="20"
-              cy="20"
-              r={radius}
-              fill="none"
-              stroke={stroke}
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-              className="transition-[stroke-dasharray] duration-1000 linear"
-            />
-          </svg>
-          <div className="pr-1 min-w-[52px]">
+        <div className="border-3 border-jet bg-dirty shadow-hard px-3 py-2 flex items-center gap-3">
+          <div className="min-w-[52px]">
             <p className="g-label !text-[10px]">Rest</p>
-            <p className={`g-value text-lg leading-none ${energetic ? 'text-energy' : 'text-white'}`}>
+            <p className="font-mono text-lg font-bold leading-none">
               {m}:{String(s).padStart(2, '0')}
             </p>
           </div>
           <button
             type="button"
             onClick={() => restart(secondsLeft + 30)}
-            className="g-btn h-8 px-2.5 rounded-full bg-white/5 text-xs font-semibold text-white/90"
+            className="g-btn-ghost !py-1 !px-2 text-xs"
           >
             +30s
           </button>
@@ -118,23 +97,23 @@ export function RestTimerPill({
               setSecondsLeft(0)
               setRunning(false)
             }}
-            className="g-btn h-8 px-2.5 rounded-full bg-white/5 text-xs font-semibold text-secondaryText"
+            className="g-btn-ghost !py-1 !px-2 text-xs"
           >
             Skip
           </button>
           <button
             type="button"
             onClick={onDismiss}
-            className="g-btn flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-secondaryText"
+            className="g-btn-ghost !p-1"
             aria-label="Dismiss"
           >
             <X size={14} />
           </button>
         </div>
 
-        <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+        <div className="h-2 w-full border-2 border-jet bg-dirty overflow-hidden">
           <div
-            className={`h-full transition-all duration-1000 linear ${energetic ? 'bg-energy' : 'bg-accent'}`}
+            className="h-full bg-jeepney transition-all duration-1000 linear"
             style={{ width: `${barPct}%` }}
           />
         </div>
@@ -145,12 +124,10 @@ export function RestTimerPill({
               key={preset}
               type="button"
               onClick={() => restart(preset)}
-              className={`g-btn px-2.5 py-1 text-[10px] font-semibold rounded-full border ${
+              className={`g-btn text-[10px] font-bold px-2 py-1 ${
                 total === preset && running
-                  ? energetic
-                    ? 'border-energy/40 bg-energy/20 text-energy'
-                    : 'border-accent/40 bg-accent/20 text-accent'
-                  : 'border-white/10 bg-card/80 text-secondaryText'
+                  ? 'bg-jeepney text-dirty shadow-hardSm'
+                  : 'bg-dirty shadow-hardSm'
               }`}
             >
               {preset}s

@@ -373,6 +373,16 @@ export function Workout() {
 
       {tab === 'plans' ? (
         <>
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-asphalt" />
+            <input
+              className="g-input !pl-9"
+              placeholder="Search workouts..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+
           <button
             type="button"
             className="g-btn-accent w-full"
@@ -382,8 +392,18 @@ export function Workout() {
             Create Workout
           </button>
 
+          {plans.length === 0 && (
+            <div className="g-card text-center py-8">
+              <p className="font-display text-lg">WALANG WORKOUT PA</p>
+              <p className="text-xs text-asphalt mt-1">Create your first workout or run Setup to auto-generate.</p>
+            </div>
+          )}
+
           <div className="space-y-3">
-            {plans.map((plan) => (
+            {plans.filter((p) => {
+              const q = query.trim().toLowerCase()
+              return !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+            }).map((plan) => (
               <div key={plan.id} className="g-card space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -473,6 +493,12 @@ export function Workout() {
             />
           </div>
           <p className="text-xs font-bold uppercase text-asphalt">Local library · offline · no API limits</p>
+          {filteredLibrary.length === 0 && (
+            <div className="g-card text-center py-6">
+              <p className="font-display text-base">NO RESULTS</p>
+              <p className="text-xs text-asphalt mt-1">Try a different search term.</p>
+            </div>
+          )}
           <div className="space-y-2">
             {filteredLibrary.map((ex) => (
               <div key={ex.id} className="g-card flex items-center justify-between gap-2 !py-3">
@@ -512,6 +538,12 @@ export function Workout() {
             <Plus size={16} className="inline mr-2" />
             Create Exercise
           </button>
+          {filteredExercises.length === 0 && (
+            <div className="g-card text-center py-6">
+              <p className="font-display text-base">NO EXERCISES</p>
+              <p className="text-xs text-asphalt mt-1">Create one or import from the Guides tab.</p>
+            </div>
+          )}
           <div className="space-y-2">
             {filteredExercises.map((ex) => (
               <div key={ex.id} className="g-card flex items-center justify-between gap-2 !py-3">

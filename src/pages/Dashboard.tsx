@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getGreeting } from '../lib/utils'
+import { DynamicQuoteCard } from '../components/dashboard/DynamicQuoteCard'
 import {
   DEFAULT_COACH,
   buildTodayPlan,
@@ -119,6 +120,11 @@ export function Dashboard() {
         </button>
       )}
 
+      <DynamicQuoteCard />
+
+      <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/progress')}>
+        View Progress & Weight
+      </button>
       <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/bakal')}>
         Edit routines sa Bakal
       </button>

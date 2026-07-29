@@ -1,20 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Camera, Flame } from 'lucide-react'
+import { Camera, Flame, Trash2 } from 'lucide-react'
 import { AUTH_BYPASS, DEMO_USER_ID, demoGet, demoSet, todayISO } from '../lib/demoMode'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { WeightChart } from '../components/progress/WeightChart'
+import { getExtProfile } from '../lib/store'
 import type { DailyLog, WeightLog } from '../types/database.types'
 
-const PHOTO_PLACEHOLDERS = [
-  { label: 'Week 1', date: 'Day 1' },
-  { label: 'Week 4', date: 'Day 28' },
-]
-
 export function Progress() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const { showToast } = useToast()
+  const ext = getExtProfile()
   const [weight, setWeight] = useState('')
   const [logs, setLogs] = useState<WeightLog[]>([])
   const [streak, setStreak] = useState(0)
@@ -109,18 +106,24 @@ export function Progress() {
     showToast('weight')
   }
 
+  function deleteWeightLog(id: string) {
+    const next = logs.filter((l) => l.id !== id)
+    setLogs(next)
+    if (AUTH_BYPASS) demoSet('weight_logs', next)
+    showToast('deleted')
+  }
+
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="g-label mb-2">Progress</p>
-        <h1 className="g-display">Salmin</h1>
-        <p className="mt-2 text-sm text-secondaryText">
-          Target: <span className="g-value text-sm">{profile?.target_weight ?? 70}</span> kg
+    <div className="g-page">
+      <header className="border-3 border-jet bg-malunggay text-dirty p-4 shadow-hard">
+        <h1 className="font-display text-5xl">PROGRESS</h1>
+        <p className="mt-2 text-sm font-medium">
+          Target: {ext.target_weight} kg · Current: {ext.current_weight} kg
         </p>
       </header>
 
       <form onSubmit={saveWeight} className="g-card space-y-3">
-        <label className="g-label">Quick Weight Log</label>
+        <p className="g-label">Quick Weight Log</p>
         <div className="flex gap-2">
           <input
             type="number"
@@ -128,14 +131,14 @@ export function Progress() {
             inputMode="decimal"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
-            className="flex-1 rounded-xl bg-subcanvas border border-white/10 px-4 py-3 g-value outline-none focus:border-accent"
+            className="g-input flex-1"
             placeholder="72.5"
             required
           />
           <button
             type="submit"
             disabled={saving}
-            className="g-btn rounded-xl bg-white px-4 py-3 font-semibold text-background disabled:opacity-50"
+            className="g-btn-primary !py-2 disabled:opacity-50"
           >
             Save
           </button>
@@ -147,34 +150,60 @@ export function Progress() {
       />
 
       <div className="g-card flex items-center gap-4">
-        <div className="rounded-xl bg-white/5 p-3">
-          <Flame className="text-warning" size={28} />
-        </div>
+        <Flame size={28} className="text-traffic" />
         <div>
-          <p className="g-label">Workout streak</p>
-          <p className="g-value text-3xl mt-1">
+          <p className="g-label">Workout Streak</p>
+          <p className="font-mono text-3xl font-bold">
             {streak}
-            <span className="text-base font-sans font-normal text-secondaryText ml-1">days</span>
+            <span className="text-sm font-sans text-asphalt ml-1">days</span>
           </p>
         </div>
       </div>
 
+      {logs.length > 0 && (
+        <div className="g-card space-y-2">
+          <p className="g-label">Recent Entries</p>
+          {logs.slice(-10).reverse().map((l) => (
+            <div key={l.id} className="flex items-center justify-between border-b-3 border-jet pb-2 last:border-b-0 last:pb-0">
+              <div>
+                <p className="font-mono font-bold">{Number(l.weight).toFixed(1)} kg</p>
+                <p className="text-xs text-asphalt">{new Date(l.logged_at).toLocaleDateString()}</p>
+              </div>
+              <button type="button" className="g-btn-ghost !p-1" onClick={() => deleteWeightLog(l.id)}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {logs.length === 0 && (
+        <div className="g-card text-center py-8">
+          <p className="font-display text-lg">WALANG DATA PA</p>
+          <p className="text-xs text-asphalt mt-1">Log your first weight above.</p>
+        </div>
+      )}
+
       <div>
         <p className="g-label mb-3">Progress Photos</p>
         <div className="grid grid-cols-2 gap-3">
-          {PHOTO_PLACEHOLDERS.map((photo) => (
-            <div
+          {[
+            { label: 'Week 1', date: 'Day 1' },
+            { label: 'Week 4', date: 'Day 28' },
+          ].map((photo) => (
+            <label
               key={photo.label}
-              className="g-card !p-0 overflow-hidden aspect-[3/4] relative bg-subcanvas border-white/5"
+              className="g-card !p-0 overflow-hidden aspect-[3/4] relative bg-concrete cursor-pointer"
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-asphalt">
                 <Camera size={22} />
-                <span className="text-xs">{photo.label}</span>
+                <span className="text-xs font-bold">{photo.label}</span>
               </div>
-              <span className="absolute bottom-2 left-2 rounded-full bg-black/50 backdrop-blur px-2 py-0.5 text-[10px] font-semibold text-white">
+              <span className="absolute bottom-2 left-2 bg-jet text-dirty px-2 py-0.5 text-[10px] font-bold">
                 {photo.date}
               </span>
-            </div>
+              <input type="file" accept="image/*" className="hidden" onChange={() => {}} />
+            </label>
           ))}
         </div>
       </div>

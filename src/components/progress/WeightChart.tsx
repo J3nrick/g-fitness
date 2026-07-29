@@ -10,7 +10,7 @@ interface WeightChartProps {
 export function WeightChart({ data }: WeightChartProps) {
   if (data.length === 0) {
     return (
-      <div className="g-card h-48 flex items-center justify-center text-secondaryText text-sm">
+      <div className="g-card h-48 flex items-center justify-center text-asphalt text-sm">
         Log weight to see your curve.
       </div>
     )
@@ -43,19 +43,19 @@ export function WeightChart({ data }: WeightChartProps) {
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-48" role="img" aria-label="Weight progress chart">
         <defs>
           <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#4F8CFF" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#4F8CFF" stopOpacity="0" />
+            <stop offset="0%" stopColor="#C62828" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#C62828" stopOpacity="0" />
           </linearGradient>
         </defs>
         <polygon points={area} fill="url(#weightFill)" />
-        <polyline fill="none" stroke="#4F8CFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={line} />
+        <polyline fill="none" stroke="#C62828" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={line} />
         {coords.map((c, i) => (
-          <circle key={data[i].logged_at + i} cx={c.x} cy={c.y} r="3.5" fill="#FFFFFF" />
+          <circle key={data[i].logged_at + i} cx={c.x} cy={c.y} r="4" fill="#111111" stroke="#C62828" strokeWidth="2" />
         ))}
       </svg>
-      <div className="flex justify-between text-xs text-secondaryText px-1">
-        <span className="g-value text-xs">{data[0].weight} kg</span>
-        <span className="g-value text-xs">{data[data.length - 1].weight} kg</span>
+      <div className="flex justify-between text-xs text-asphalt px-1 mt-2">
+        <span className="font-mono font-bold">{data[0].weight} kg</span>
+        <span className="font-mono font-bold">{data[data.length - 1].weight} kg</span>
       </div>
     </div>
   )
