@@ -24,4 +24,4 @@ Prefer `src/data/exercises.ts` over live APIs (offline, no rate limits, Taglish-
 2. Every screen answers: "Ano ang susunod kong gagawin?"
 3. Generated plans are never locked — always editable.
 4. 15-second logging rule.
-5. Tropa Mode is optional for unfiltered copy.
+5. Tropa Mode is optional for unfiltered copy..
