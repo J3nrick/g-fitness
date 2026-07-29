@@ -40,12 +40,7 @@ Respond ONLY with valid JSON matching this structure:
 }
 confidence is 0-100. Do not include markdown, text, or explanations outside the JSON.`
 
-/** Current Flash models that work with Google AI Studio keys. */
-const GEMINI_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-001',
-  'gemini-2.0-flash-lite',
-]
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-lite']
 
 function normalizeItems(raw: unknown): ScannedFood[] {
   if (!raw || typeof raw !== 'object') return []
@@ -57,8 +52,9 @@ function normalizeItems(raw: unknown): ScannedFood[] {
     .map((entry) => {
       const e = entry as Record<string, unknown>
       const confidenceRaw = Number(e.confidence ?? 80)
+      const name = String(e.food_name ?? e.name ?? '').trim()
       return {
-        food_name: String(e.food_name ?? e.name ?? 'Unknown food'),
+        food_name: name || 'Unknown food',
         estimated_grams: Math.max(1, Math.round(Number(e.estimated_grams ?? e.estimated_weight_grams ?? e.grams ?? 100))),
         calories: Math.max(0, Math.round(Number(e.calories ?? 0))),
         protein: Math.max(0, Math.round(Number(e.protein ?? 0))),
@@ -67,12 +63,50 @@ function normalizeItems(raw: unknown): ScannedFood[] {
         confidence: confidenceRaw <= 1 ? Math.round(confidenceRaw * 100) : Math.round(confidenceRaw),
       }
     })
-    .filter((i) => i.food_name && i.food_name !== 'Unknown food')
+    .filter((i) => i.food_name !== 'Unknown food')
 }
 
-function getMimeType(base64Image: string): string {
-  const match = base64Image.match(/^data:(image\/[\w+.-]+);base64,/)
-  return match?.[1] ?? 'image/jpeg'
+/** Shrink large camera photos so Gemini accepts them reliably. */
+async function compressImage(base64Image: string, maxSide = 1280): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width <= maxSide && height <= maxSide && base64Image.length < 1_500_000) {
+        resolve(base64Image)
+        return
+      }
+      const scale = Math.min(maxSide / width, maxSide / height, 1)
+      width = Math.round(width * scale)
+      height = Math.round(height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        resolve(base64Image)
+        return
+      }
+      ctx.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.onerror = () => resolve(base64Image)
+    img.src = base64Image
+  })
+}
+
+function parseGeminiError(status: number, body: string): string {
+  try {
+    const json = JSON.parse(body) as { error?: { message?: string; status?: string } }
+    const msg = json.error?.message ?? body
+    if (status === 429) return `Rate limit / quota. Hintayin mo sandali tapos try again. (${msg.slice(0, 80)})`
+    if (status === 400 && /API key/i.test(msg)) return `API key invalid. Check VITE_GEMINI_API_KEY sa .env.local`
+    if (status === 401 || status === 403) return `API key rejected (${status}). Gumawa ng bagong key sa Google AI Studio.`
+    return `Gemini error ${status}: ${msg.slice(0, 120)}`
+  } catch {
+    if (status === 429) return 'Rate limit / quota. Hintayin mo sandali tapos try again.'
+    return `Gemini error ${status}: ${body.slice(0, 120)}`
+  }
 }
 
 async function callGemini(
@@ -80,9 +114,10 @@ async function callGemini(
   model: string,
   base64Image: string,
 ): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`
   const pureBase64 = base64Image.replace(/^data:image\/[\w+.-]+;base64,/, '')
-  const mimeType = getMimeType(base64Image)
+  const mimeMatch = base64Image.match(/^data:(image\/[\w+.-]+);base64,/)
+  const mimeType = mimeMatch?.[1] ?? 'image/jpeg'
 
   const response = await fetch(url, {
     method: 'POST',
@@ -90,11 +125,12 @@ async function callGemini(
     body: JSON.stringify({
       contents: [
         {
+          role: 'user',
           parts: [
             { text: SYSTEM_PROMPT },
             {
-              inline_data: {
-                mime_type: mimeType,
+              inlineData: {
+                mimeType,
                 data: pureBase64,
               },
             },
@@ -112,9 +148,17 @@ async function callGemini(
   if (!response.ok) return { ok: false, status: response.status, body }
 
   try {
-    const data = JSON.parse(body)
+    const data = JSON.parse(body) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>
+      promptFeedback?: { blockReason?: string }
+    }
+    if (data.promptFeedback?.blockReason) {
+      return { ok: false, status: 400, body: JSON.stringify({ error: { message: `Blocked: ${data.promptFeedback.blockReason}` } }) }
+    }
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) return { ok: false, status: 200, body: 'Empty model response' }
+    if (!text) {
+      return { ok: false, status: 200, body: JSON.stringify({ error: { message: 'Empty model response' } }) }
+    }
     return { ok: true, text }
   } catch {
     return { ok: false, status: response.status, body: body.slice(0, 300) }
@@ -131,21 +175,22 @@ export function useFoodScanner() {
 
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY?.trim()
     if (!apiKey) {
-      setError('Walang Gemini API key. Lagyan mo ng VITE_GEMINI_API_KEY sa .env.local')
+      setError('Walang Gemini API key. Restart ang npm run dev after adding VITE_GEMINI_API_KEY sa .env.local')
       setLoading(false)
       return null
     }
 
     try {
+      const compressed = await compressImage(base64Image)
       let lastError = ''
+
       for (const model of GEMINI_MODELS) {
-        const result = await callGemini(apiKey, model, base64Image)
+        const result = await callGemini(apiKey, model, compressed)
         if (result.ok === false) {
-          lastError = `API ${result.status}: ${result.body.slice(0, 180)}`
-          // Invalid key / permission — don't bother trying other models
-          if (result.status === 400 || result.status === 401 || result.status === 403) {
-            break
-          }
+          lastError = parseGeminiError(result.status, result.body)
+          // Auth/quota — stop trying other models
+          if (result.status === 401 || result.status === 403 || result.status === 429) break
+          if (result.status === 400 && /API key/i.test(result.body)) break
           continue
         }
 
@@ -154,7 +199,7 @@ export function useFoodScanner() {
         const items = normalizeItems(parsed)
 
         if (items.length === 0) {
-          lastError = 'Walang na-detect na pagkain sa litrato.'
+          lastError = 'Walang na-detect na pagkain sa litrato. Subukan ang mas malinaw na picture.'
           continue
         }
 
@@ -169,16 +214,12 @@ export function useFoodScanner() {
       }
 
       console.error('Lamon Scan error:', lastError)
-      if (lastError.includes('API key') || lastError.includes('401') || lastError.includes('403')) {
-        setError('Invalid Gemini API key. Check VITE_GEMINI_API_KEY sa .env.local')
-      } else {
-        setError('Di mabasa yung pagkain. Subukan mo ulit picturan nang malinaw.')
-      }
+      setError(lastError || 'Di mabasa yung pagkain. Subukan mo ulit.')
       setLoading(false)
       return null
     } catch (err) {
       console.error('Lamon Scan error:', err)
-      setError('Di mabasa yung pagkain. Subukan mo ulit picturan nang malinaw.')
+      setError(err instanceof Error ? err.message : 'Di mabasa yung pagkain. Subukan mo ulit.')
       setLoading(false)
       return null
     }
