@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bot, Send, Trash2 } from 'lucide-react'
-import { useGCoach } from '../hooks/useGCoach'
+import { Bot, Dumbbell, LineChart, Send, Trash2, Utensils } from 'lucide-react'
+import { useGCoach, type CoachAction } from '../hooks/useGCoach'
 import { getDailyBriefFacts } from '../lib/coachContext'
 
 const QUICK_PROMPTS = [
@@ -12,8 +12,14 @@ const QUICK_PROMPTS = [
   'Bakit hindi ako umuusad?',
 ]
 
+const ACTIONS: Array<{ id: CoachAction; label: string; icon: typeof Utensils }> = [
+  { id: 'nutrition', label: 'Meal plan', icon: Utensils },
+  { id: 'routine', label: 'Build routine', icon: Dumbbell },
+  { id: 'progress', label: '30-day report', icon: LineChart },
+]
+
 export function Coach() {
-  const { messages, loading, error, ask, clearChat } = useGCoach()
+  const { messages, loading, error, ask, runAction, clearChat } = useGCoach()
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const brief = getDailyBriefFacts()
@@ -83,6 +89,21 @@ export function Coach() {
           <p className="g-label !text-[9px]">Streak</p>
           <p className="font-mono text-sm font-bold">{brief.streak}d</p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {ACTIONS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            disabled={loading}
+            className="g-btn-ghost !py-2 text-[10px] flex flex-col items-center gap-1 disabled:opacity-50"
+            onClick={() => void runAction(id)}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto min-h-[240px]">

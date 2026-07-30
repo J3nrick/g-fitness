@@ -1,7 +1,13 @@
 import { useCallback, useState } from 'react'
-import { buildCoachContext, buildSystemPrompt } from '../lib/coachContext'
+import { buildCoachContext } from '../lib/coachContext'
+import { getCoachingStyle } from '../lib/messages'
 import { demoGet, demoSet } from '../lib/demoMode'
-import { GEMINI_MODELS, parseGeminiHttpError, shouldStopModelLoop } from '../lib/gemini'
+import { AiApiError, invokeAiChat } from '../lib/aiApi'
+import {
+  runNutritionCoachAction,
+  runProgressAnalysisAction,
+  runRoutineGeneratorAction,
+} from '../lib/aiActions'
 
 export interface CoachMessage {
   id: string
@@ -10,7 +16,10 @@ export interface CoachMessage {
   at: string
 }
 
+export type CoachAction = 'nutrition' | 'routine' | 'progress'
+
 const HISTORY_KEY = 'g_coach_chat_v1'
+const CONVERSATION_KEY = 'g_coach_conversation_id'
 
 function uid() {
   return crypto.randomUUID()
@@ -24,111 +33,76 @@ function saveHistory(messages: CoachMessage[]) {
   demoSet(HISTORY_KEY, messages.slice(-40))
 }
 
-async function callGeminiChat(
-  apiKey: string,
-  model: string,
-  systemPrompt: string,
-  context: string,
-  history: CoachMessage[],
-  userText: string,
-): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`
-
-  const contents = [
-    ...history.slice(-12).map((m) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.text }],
-    })),
-    {
-      role: 'user',
-      parts: [
-        {
-          text: `USER DATA CONTEXT (facts only — do not invent beyond this):\n\n${context}\n\n---\nUSER MESSAGE:\n${userText}`,
-        },
-      ],
-    },
-  ]
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      },
-    }),
-  })
-
-  const body = await response.text()
-  if (!response.ok) return { ok: false, status: response.status, body }
-
-  try {
-    const data = JSON.parse(body) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-    }
-    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
-    if (!text.trim()) return { ok: false, status: 200, body: 'Empty response' }
-    return { ok: true, text: text.trim() }
-  } catch {
-    return { ok: false, status: response.status, body: body.slice(0, 300) }
-  }
+const ACTION_LABELS: Record<CoachAction, string> = {
+  nutrition: 'Suggest meals for my remaining macros today.',
+  routine: 'Generate a full workout routine from my profile and save it to Bakal.',
+  progress: 'Analyze my last 30 days of progress and give recommendations.',
 }
 
 export function useGCoach() {
   const [messages, setMessages] = useState<CoachMessage[]>(() => loadHistory())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conversationId, setConversationId] = useState<string | null>(() =>
+    demoGet<string | null>(CONVERSATION_KEY, null),
+  )
 
-  const ask = useCallback(async (userText: string) => {
-    const trimmed = userText.trim()
-    if (!trimmed || loading) return null
-
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY?.trim()
-    if (!apiKey) {
-      setError('Walang Gemini API key. Restart npm run dev after setting VITE_GEMINI_API_KEY.')
-      return null
-    }
-
+  const appendExchange = useCallback((userText: string, assistantText: string) => {
     const userMsg: CoachMessage = {
       id: uid(),
       role: 'user',
-      text: trimmed,
+      text: userText,
       at: new Date().toISOString(),
     }
+    const modelMsg: CoachMessage = {
+      id: uid(),
+      role: 'model',
+      text: assistantText,
+      at: new Date().toISOString(),
+    }
+    setMessages((prev) => {
+      const next = [...prev, userMsg, modelMsg]
+      saveHistory(next)
+      return next
+    })
+  }, [])
 
-    const nextHistory = [...messages, userMsg]
-    setMessages(nextHistory)
-    saveHistory(nextHistory)
-    setLoading(true)
-    setError(null)
+  const ask = useCallback(
+    async (userText: string) => {
+      const trimmed = userText.trim()
+      if (!trimmed || loading) return null
 
-    try {
-      const systemPrompt = buildSystemPrompt()
-      const context = buildCoachContext()
-      let lastError = ''
+      const userMsg: CoachMessage = {
+        id: uid(),
+        role: 'user',
+        text: trimmed,
+        at: new Date().toISOString(),
+      }
 
-      for (const model of GEMINI_MODELS) {
-        const result = await callGeminiChat(
-          apiKey,
-          model,
-          systemPrompt,
-          context,
-          messages,
-          trimmed,
-        )
-        if (result.ok === false) {
-          lastError = parseGeminiHttpError(result.status, result.body)
-          if (shouldStopModelLoop(result.status, result.body)) break
-          continue
+      const nextHistory = [...messages, userMsg]
+      setMessages(nextHistory)
+      saveHistory(nextHistory)
+      setLoading(true)
+      setError(null)
+
+      try {
+        const result = await invokeAiChat({
+          message: trimmed,
+          context: buildCoachContext(),
+          coachingStyle: getCoachingStyle(),
+          history: messages.map((m) => ({ role: m.role, text: m.text })),
+          conversationId,
+        })
+
+        if (result.conversationId) {
+          setConversationId(result.conversationId)
+          demoSet(CONVERSATION_KEY, result.conversationId)
         }
 
         const modelMsg: CoachMessage = {
           id: uid(),
           role: 'model',
-          text: result.text,
+          text: result.reply,
           at: new Date().toISOString(),
         }
         const withReply = [...nextHistory, modelMsg]
@@ -136,24 +110,59 @@ export function useGCoach() {
         saveHistory(withReply)
         setLoading(false)
         return modelMsg
+      } catch (err) {
+        console.error('G! Coach error:', err)
+        const msg =
+          err instanceof AiApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : 'Di makasagot si Coach.'
+        setError(msg)
+        setLoading(false)
+        return null
       }
+    },
+    [messages, loading, conversationId],
+  )
 
-      setError(lastError || 'Di makasagot si Coach. Try again.')
-      setLoading(false)
-      return null
-    } catch (err) {
-      console.error('G! Coach error:', err)
-      setError(err instanceof Error ? err.message : 'Di makasagot si Coach.')
-      setLoading(false)
-      return null
-    }
-  }, [messages, loading])
+  const runAction = useCallback(
+    async (action: CoachAction) => {
+      if (loading) return null
+      setLoading(true)
+      setError(null)
+      const label = ACTION_LABELS[action]
+      try {
+        let reply = ''
+        if (action === 'nutrition') reply = await runNutritionCoachAction()
+        else if (action === 'routine') reply = await runRoutineGeneratorAction()
+        else reply = await runProgressAnalysisAction(30)
+        appendExchange(label, reply)
+        setLoading(false)
+        return reply
+      } catch (err) {
+        console.error('G! Coach action error:', err)
+        const msg =
+          err instanceof AiApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : 'Action failed.'
+        setError(msg)
+        setLoading(false)
+        return null
+      }
+    },
+    [loading, appendExchange],
+  )
 
   const clearChat = useCallback(() => {
     setMessages([])
     saveHistory([])
+    setConversationId(null)
+    demoSet(CONVERSATION_KEY, null)
     setError(null)
   }, [])
 
-  return { messages, loading, error, ask, clearChat, setError }
+  return { messages, loading, error, ask, runAction, clearChat, setError }
 }

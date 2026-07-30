@@ -87,11 +87,6 @@ export function FoodScannerModal({ onClose, onLogMeal }: Props) {
         <div className="border-b-3 border-jet bg-jeepney text-dirty p-4">
           <h3 className="font-display text-2xl">LAMON SCAN</h3>
           <p className="text-xs mt-1 opacity-80">Picture lang. Kami na bahala.</p>
-          {!import.meta.env.VITE_GEMINI_API_KEY && (
-            <p className="text-xs mt-2 bg-mango text-jet px-2 py-1 font-bold">
-              No API key loaded — restart npm run dev
-            </p>
-          )}
         </div>
 
         <div className="p-4 space-y-4">
