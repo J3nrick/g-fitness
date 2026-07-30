@@ -10,6 +10,7 @@ import { Workout } from './pages/Workout'
 import { ActiveWorkout } from './pages/ActiveWorkout'
 import { Meals } from './pages/Meals'
 import { Katamad } from './pages/Katamad'
+import { Coach } from './pages/Coach'
 import { Ako } from './pages/Ako'
 import { Progress } from './pages/Progress'
 import { AUTH_BYPASS } from './lib/demoMode'
@@ -54,6 +55,7 @@ function ProtectedRoutes() {
         <Route path="/lamon" element={<Meals />} />
         <Route path="/meals" element={<Navigate to="/lamon" replace />} />
         <Route path="/katamad" element={<Katamad />} />
+        <Route path="/coach" element={<Coach />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/ako" element={<Ako />} />
         <Route path="/settings" element={<Navigate to="/ako" replace />} />

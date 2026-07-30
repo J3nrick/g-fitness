@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GEMINI_MODELS, parseGeminiHttpError, shouldStopModelLoop } from '../lib/gemini'
 
 export interface ScannedFood {
   food_name: string
@@ -39,8 +40,6 @@ Respond ONLY with valid JSON matching this structure:
   ]
 }
 confidence is 0-100. Do not include markdown, text, or explanations outside the JSON.`
-
-const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-001', 'gemini-2.0-flash-lite']
 
 function normalizeItems(raw: unknown): ScannedFood[] {
   if (!raw || typeof raw !== 'object') return []
@@ -93,20 +92,6 @@ async function compressImage(base64Image: string, maxSide = 1280): Promise<strin
     img.onerror = () => resolve(base64Image)
     img.src = base64Image
   })
-}
-
-function parseGeminiError(status: number, body: string): string {
-  try {
-    const json = JSON.parse(body) as { error?: { message?: string; status?: string } }
-    const msg = json.error?.message ?? body
-    if (status === 429) return `Rate limit / quota. Hintayin mo sandali tapos try again. (${msg.slice(0, 80)})`
-    if (status === 400 && /API key/i.test(msg)) return `API key invalid. Check VITE_GEMINI_API_KEY sa .env.local`
-    if (status === 401 || status === 403) return `API key rejected (${status}). Gumawa ng bagong key sa Google AI Studio.`
-    return `Gemini error ${status}: ${msg.slice(0, 120)}`
-  } catch {
-    if (status === 429) return 'Rate limit / quota. Hintayin mo sandali tapos try again.'
-    return `Gemini error ${status}: ${body.slice(0, 120)}`
-  }
 }
 
 async function callGemini(
@@ -187,10 +172,8 @@ export function useFoodScanner() {
       for (const model of GEMINI_MODELS) {
         const result = await callGemini(apiKey, model, compressed)
         if (result.ok === false) {
-          lastError = parseGeminiError(result.status, result.body)
-          // Auth/quota — stop trying other models
-          if (result.status === 401 || result.status === 403 || result.status === 429) break
-          if (result.status === 400 && /API key/i.test(result.body)) break
+          lastError = parseGeminiHttpError(result.status, result.body)
+          if (shouldStopModelLoop(result.status, result.body)) break
           continue
         }
 

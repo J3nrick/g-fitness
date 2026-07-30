@@ -120,8 +120,15 @@ export function Dashboard() {
         </button>
       )}
 
+      <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={() => navigate('/coach')}>
+        ASK G! COACH
+      </button>
+
       <DynamicQuoteCard />
 
+      <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/katamad')}>
+        Katamad Today
+      </button>
       <button type="button" className="g-btn-ghost w-full" onClick={() => navigate('/progress')}>
         View Progress & Weight
       </button>

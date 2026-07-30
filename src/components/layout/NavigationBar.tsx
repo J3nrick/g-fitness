@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Dumbbell, UtensilsCrossed, Dices, User } from 'lucide-react'
+import { Home, Dumbbell, UtensilsCrossed, Bot, User } from 'lucide-react'
 
 const tabs = [
   { to: '/', label: 'G!', icon: Home },
   { to: '/bakal', label: 'Bakal', icon: Dumbbell },
   { to: '/lamon', label: 'Lamon', icon: UtensilsCrossed },
-  { to: '/katamad', label: 'Katamad', icon: Dices },
+  { to: '/coach', label: 'Coach', icon: Bot },
   { to: '/ako', label: 'Ako', icon: User },
 ]
 
