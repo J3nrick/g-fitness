@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { BrandLogo } from '../components/BrandLogo'
 
 export function Auth() {
   const { signIn, signUp } = useAuth()
@@ -21,10 +22,7 @@ export function Auth() {
   return (
     <div className="min-h-screen bg-dirty flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-5">
-        <div className="border-3 border-jet bg-jeepney text-dirty p-6 shadow-hard text-center">
-          <h1 className="font-display text-6xl">G!</h1>
-          <p className="mt-2 font-bold">Walang drama. G lang.</p>
-        </div>
+        <BrandLogo className="w-full" />
         <div className="g-card space-y-4">
           <div className="grid grid-cols-2 border-3 border-jet">
             <button

@@ -16,6 +16,7 @@ import {
   isCompanionReady,
 } from '../lib/store'
 import { MissionChecklist, useStreak } from '../components/dashboard/MissionChecklist'
+import { BrandLogo } from '../components/BrandLogo'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -38,9 +39,9 @@ export function Dashboard() {
   if (!ready) {
     return (
       <div className="g-page">
-        <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard">
-          <h1 className="font-display text-4xl">G! COACH</h1>
-          <p className="mt-2 text-sm">Walang guesswork. Sundan mo lang.</p>
+        <header className="space-y-3">
+          <BrandLogo className="w-full" />
+          <p className="text-sm font-bold text-center">Walang guesswork. Sundan mo lang.</p>
         </header>
         <div className="g-card">
           <p className="font-bold">Gusto mong magbago. Ano ang dapat mong gawin simula ngayon?</p>
@@ -55,10 +56,10 @@ export function Dashboard() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard">
-        <p className="text-xs font-bold uppercase tracking-widest opacity-90">{getGreeting()}</p>
-        <h1 className="font-display text-5xl mt-1">G! COACH</h1>
-        <p className="mt-2 text-sm font-medium">
+      <header className="space-y-3">
+        <BrandLogo className="w-full" />
+        <p className="text-xs font-bold uppercase tracking-widest text-asphalt">{getGreeting()}</p>
+        <p className="text-sm font-medium">
           {coach.name || ext.nickname} · {goalLabel(coach.goal)} · {coach.experience}
         </p>
       </header>

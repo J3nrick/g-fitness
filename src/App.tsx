@@ -15,6 +15,15 @@ import { Ako } from './pages/Ako'
 import { Progress } from './pages/Progress'
 import { AUTH_BYPASS } from './lib/demoMode'
 import { isCompanionReady } from './lib/store'
+import { BrandMark } from './components/BrandLogo'
+
+function LoadingMark() {
+  return (
+    <div className="min-h-screen bg-dirty flex items-center justify-center">
+      <BrandMark className="h-16 w-16 animate-pulse" />
+    </div>
+  )
+}
 
 function ProtectedRoutes() {
   const { session, profile, loading, bypass } = useAuth()
@@ -22,11 +31,7 @@ function ProtectedRoutes() {
   const hideNav = location.pathname.includes('/active') || location.pathname === '/setup'
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-dirty flex items-center justify-center font-display text-2xl">
-        G!
-      </div>
-    )
+    return <LoadingMark />
   }
 
   if (!bypass && !session) return <Navigate to="/auth" replace />
@@ -68,11 +73,7 @@ function ProtectedRoutes() {
 function PublicRoutes() {
   const { session, profile, loading, bypass } = useAuth()
   if (loading) {
-    return (
-      <div className="min-h-screen bg-dirty flex items-center justify-center font-display text-2xl">
-        G!
-      </div>
-    )
+    return <LoadingMark />
   }
   if (bypass || (session && profile?.coaching_style)) return <Navigate to="/" replace />
   if (session && !profile?.coaching_style) return <Navigate to="/onboarding" replace />
@@ -82,11 +83,7 @@ function PublicRoutes() {
 function OnboardingGate() {
   const { session, profile, loading, bypass } = useAuth()
   if (loading) {
-    return (
-      <div className="min-h-screen bg-dirty flex items-center justify-center font-display text-2xl">
-        G!
-      </div>
-    )
+    return <LoadingMark />
   }
   if (bypass) return <Navigate to="/setup" replace />
   if (!session) return <Navigate to="/auth" replace />

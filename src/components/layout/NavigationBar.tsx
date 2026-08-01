@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Dumbbell, UtensilsCrossed, Bot, User } from 'lucide-react'
+import { Dumbbell, UtensilsCrossed, Bot, User } from 'lucide-react'
 
 const tabs = [
-  { to: '/', label: 'G!', icon: Home },
+  { to: '/', label: 'G!', icon: null as null },
   { to: '/bakal', label: 'Bakal', icon: Dumbbell },
   { to: '/lamon', label: 'Lamon', icon: UtensilsCrossed },
   { to: '/coach', label: 'Coach', icon: Bot },
@@ -25,7 +25,11 @@ export function NavigationBar() {
                   }`
                 }
               >
-                <Icon size={18} strokeWidth={2.5} />
+                {Icon ? (
+                  <Icon size={18} strokeWidth={2.5} />
+                ) : (
+                  <img src="/favicon.png" alt="" className="h-[18px] w-[18px] object-cover border border-jet" />
+                )}
                 <span>{label}</span>
               </NavLink>
             </li>
