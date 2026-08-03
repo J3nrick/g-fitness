@@ -46,17 +46,17 @@ export function Coach() {
 
   return (
     <div className="g-page !space-y-3 flex flex-col min-h-[calc(100vh-8rem)]">
-      <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard">
+      <header className="border-3 border-jet bg-jeepney text-dirty p-3 shadow-hard">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-3 min-w-0">
             <img
               src="/favicon.png"
               alt=""
-              className="h-12 w-12 border-2 border-dirty object-cover shrink-0"
+              className="h-9 w-9 border-2 border-dirty object-cover shrink-0"
             />
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-widest opacity-90">Your AI Coach</p>
-              <h1 className="font-display text-4xl mt-1">G! COACH</h1>
+              <h1 className="font-display text-lg mt-1">G! COACH</h1>
               <p className="text-sm mt-1 opacity-90">Kilala ka na niya ? workouts, macros, streak.</p>
             </div>
           </div>

@@ -52,10 +52,10 @@ export function Katamad() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-traffic text-dirty p-4 shadow-hard">
+      <header className="border-3 border-jet bg-traffic text-dirty p-3 shadow-hard">
         <div className="flex items-center gap-2">
           <Dices size={28} />
-          <h1 className="font-display text-4xl">KATAMAD</h1>
+          <h1 className="font-display text-lg">KATAMAD</h1>
         </div>
         <p className="mt-2 text-sm font-medium">
           Built for you: {coach.experience} · {coach.location} · defeats excuses
@@ -69,7 +69,7 @@ export function Katamad() {
 
       <div className="g-card !p-0 overflow-hidden">
         <div className="bg-jet text-dirty px-4 py-3 flex items-center justify-between">
-          <p className="font-display text-xl">TODAY&apos;S CHALLENGE</p>
+          <p className="font-display text-lg">TODAY&apos;S CHALLENGE</p>
           <span className="font-mono text-sm bg-mango text-jet px-2 py-1 border-2 border-dirty">
             ~{challenge.minutes} MIN
           </span>
@@ -85,7 +85,7 @@ export function Katamad() {
                   type="button"
                   disabled={!started}
                   onClick={() => setDone((prev) => ({ ...prev, [i]: !prev[i] }))}
-                  className={`flex-1 flex items-center gap-3 px-4 py-4 text-left disabled:opacity-50 ${
+                  className={`flex-1 flex items-center gap-3 px-3 py-2.5 text-left disabled:opacity-50 ${
                     done[i] ? 'bg-malunggay/25' : 'bg-dirty'
                   }`}
                 >
@@ -115,13 +115,13 @@ export function Katamad() {
       {guideId && <ExerciseGuide exerciseId={guideId} onClose={() => setGuideId(null)} />}
 
       {!started ? (
-        <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={() => setStarted(true)}>
+        <button type="button" className="g-btn-primary w-full text-sm py-2.5" onClick={() => setStarted(true)}>
           START
         </button>
       ) : (
         <button
           type="button"
-          className="g-btn-primary w-full text-xl py-4"
+          className="g-btn-primary w-full text-sm py-2.5"
           disabled={!allDone}
           onClick={completeDay}
         >

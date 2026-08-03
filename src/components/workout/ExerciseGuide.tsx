@@ -34,7 +34,7 @@ export function ExerciseGuide({ exerciseId, exerciseName, onClose }: ExerciseGui
     <div className="g-card space-y-4 !p-0 overflow-hidden">
       <div className="bg-jet text-dirty px-4 py-3 flex items-start justify-between gap-3">
         <div>
-          <p className="font-display text-2xl leading-none">{ex.name.toUpperCase()}</p>
+          <p className="font-display text-lg leading-none">{ex.name.toUpperCase()}</p>
           <p className="text-xs mt-2 uppercase tracking-widest opacity-80">
             {ex.primary}
             {ex.secondary.length ? ` · ${ex.secondary.join(', ')}` : ''}
@@ -64,7 +64,7 @@ export function ExerciseGuide({ exerciseId, exerciseName, onClose }: ExerciseGui
 
       <div className="px-4">
         <p className="g-label mb-1">Difficulty</p>
-        <p className="font-display text-xl text-jeepney">{stars}</p>
+        <p className="font-display text-lg text-jeepney">{stars}</p>
       </div>
 
       <div className="px-4">

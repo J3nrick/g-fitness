@@ -120,8 +120,8 @@ export function Meals() {
   if (editing) {
     return (
       <div className="g-page">
-        <header className="border-3 border-jet bg-jet text-dirty p-4 shadow-hard">
-          <h1 className="font-display text-4xl">FOOD</h1>
+        <header className="border-3 border-jet bg-jet text-dirty p-3 shadow-hard">
+          <h1 className="font-display text-lg">FOOD</h1>
           <p className="text-sm mt-1">Create what you actually eat.</p>
         </header>
         <label className="g-label">Name</label>
@@ -181,10 +181,10 @@ export function Meals() {
         />
       )}
 
-      <header className="border-3 border-jet bg-mango text-jet p-4 shadow-hard">
+      <header className="border-3 border-jet bg-mango text-jet p-3 shadow-hard">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-display text-5xl">LAMON</h1>
+            <h1 className="font-display text-lg">LAMON</h1>
             <p className="mt-2 text-sm font-medium">Your foods. Your macros. Tap. Done.</p>
           </div>
           <button
@@ -201,7 +201,7 @@ export function Meals() {
       <div className="g-card grid grid-cols-4 gap-2">
         <div>
           <p className="g-label">Calories</p>
-          <p className="font-mono text-xl font-bold">
+          <p className="font-mono text-lg font-bold">
             {Math.round(totals.calories)}
             <span className="text-[10px] text-asphalt font-sans block">/{profile.daily_calories}</span>
           </p>
@@ -214,7 +214,7 @@ export function Meals() {
         </div>
         <div>
           <p className="g-label">Protein</p>
-          <p className="font-mono text-xl font-bold text-malunggay">
+          <p className="font-mono text-lg font-bold text-malunggay">
             {Math.round(totals.protein)}g
           </p>
           <div className="mt-1 h-2 border-2 border-jet bg-dirty">
@@ -226,11 +226,11 @@ export function Meals() {
         </div>
         <div>
           <p className="g-label">Carbs</p>
-          <p className="font-mono text-xl font-bold text-mango">{Math.round(totals.carbs)}g</p>
+          <p className="font-mono text-lg font-bold text-mango">{Math.round(totals.carbs)}g</p>
         </div>
         <div>
           <p className="g-label">Fat</p>
-          <p className="font-mono text-xl font-bold text-traffic">{Math.round(totals.fat)}g</p>
+          <p className="font-mono text-lg font-bold text-traffic">{Math.round(totals.fat)}g</p>
         </div>
       </div>
 

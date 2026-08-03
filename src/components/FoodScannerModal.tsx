@@ -85,14 +85,14 @@ export function FoodScannerModal({ onClose, onLogMeal }: Props) {
         </button>
 
         <div className="border-b-3 border-jet bg-jeepney text-dirty p-4">
-          <h3 className="font-display text-2xl">LAMON SCAN</h3>
+          <h3 className="font-display text-lg">LAMON SCAN</h3>
           <p className="text-xs mt-1 opacity-80">Picture lang. Kami na bahala.</p>
         </div>
 
         <div className="p-4 space-y-4">
           {/* Upload area */}
           {!result && !loading && (
-            <label className="flex flex-col items-center justify-center border-3 border-dashed border-jet p-8 cursor-pointer bg-concrete hover:bg-mango/20 transition-colors">
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-jet p-4 cursor-pointer bg-concrete hover:bg-mango/20 transition-colors">
               {preview ? (
                 <img src={preview} alt="Food" className="w-full max-h-40 object-cover border-3 border-jet" />
               ) : (

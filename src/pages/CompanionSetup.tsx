@@ -67,9 +67,9 @@ export function CompanionSetup() {
   return (
     <div className="min-h-screen bg-dirty p-4">
       <div className="mx-auto max-w-md space-y-4">
-        <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard">
+        <header className="border-3 border-jet bg-jeepney text-dirty p-3 shadow-hard">
           <p className="text-xs font-bold uppercase tracking-widest opacity-80">G! Companion Setup</p>
-          <h1 className="font-display text-4xl mt-1">WALANG GUESSWORK</h1>
+          <h1 className="font-display text-lg mt-1">WALANG GUESSWORK</h1>
           <p className="mt-2 text-sm">Sundan mo lang. Step {step + 1}/{STEPS.length}</p>
         </header>
 
@@ -84,7 +84,7 @@ export function CompanionSetup() {
 
         {step === 0 && (
           <div className="g-card space-y-3">
-            <p className="font-display text-2xl">ABOUT YOU</p>
+            <p className="font-display text-lg">ABOUT YOU</p>
             <input className="g-input" placeholder="Name" value={form.name} onChange={(e) => patch('name', e.target.value)} />
             <div className="grid grid-cols-2 gap-2">
               <input type="number" className="g-input" placeholder="Age" value={form.age} onChange={(e) => patch('age', Number(e.target.value) || 0)} />
@@ -101,7 +101,7 @@ export function CompanionSetup() {
 
         {step === 1 && (
           <div className="g-card space-y-2">
-            <p className="font-display text-2xl">GOAL</p>
+            <p className="font-display text-lg">GOAL</p>
             {(
               [
                 ['lose_fat', 'Lose Fat'],
@@ -126,7 +126,7 @@ export function CompanionSetup() {
 
         {step === 2 && (
           <div className="g-card space-y-2">
-            <p className="font-display text-2xl">EXPERIENCE</p>
+            <p className="font-display text-lg">EXPERIENCE</p>
             {(['beginner', 'intermediate', 'advanced'] as Experience[]).map((id) => (
               <button
                 key={id}
@@ -144,7 +144,7 @@ export function CompanionSetup() {
 
         {step === 3 && (
           <div className="g-card space-y-2">
-            <p className="font-display text-2xl">LOCATION</p>
+            <p className="font-display text-lg">LOCATION</p>
             {(['home', 'gym', 'both'] as LocationPref[]).map((id) => (
               <button
                 key={id}
@@ -162,7 +162,7 @@ export function CompanionSetup() {
 
         {step === 4 && (
           <div className="g-card space-y-2">
-            <p className="font-display text-2xl">EQUIPMENT</p>
+            <p className="font-display text-lg">EQUIPMENT</p>
             <div className="grid grid-cols-2 gap-2">
               {EQUIPMENT_OPTIONS.map((opt) => (
                 <button
@@ -182,7 +182,7 @@ export function CompanionSetup() {
 
         {step === 5 && (
           <div className="g-card space-y-4">
-            <p className="font-display text-2xl">SCHEDULE</p>
+            <p className="font-display text-lg">SCHEDULE</p>
             <p className="g-label">Days / week</p>
             <div className="grid grid-cols-5 gap-2">
               {([2, 3, 4, 5, 6] as const).map((d) => (
@@ -219,7 +219,7 @@ export function CompanionSetup() {
         {step === 6 && preview && (
           <div className="space-y-3">
             <div className="g-card">
-              <p className="font-display text-2xl">YOUR PLAN</p>
+              <p className="font-display text-lg">YOUR PLAN</p>
               <p className="text-sm mt-2">
                 {goalLabel(form.goal)} · {form.experience} · {form.days_per_week} days · {form.duration_mins} min
               </p>
@@ -239,19 +239,19 @@ export function CompanionSetup() {
             <div className="g-card grid grid-cols-2 gap-3">
               <div>
                 <p className="g-label">Calories</p>
-                <p className="font-mono text-2xl font-bold">{preview.nutrition.calories}</p>
+                <p className="font-mono text-lg font-bold">{preview.nutrition.calories}</p>
               </div>
               <div>
                 <p className="g-label">Protein</p>
-                <p className="font-mono text-2xl font-bold">{preview.nutrition.protein}g</p>
+                <p className="font-mono text-lg font-bold">{preview.nutrition.protein}g</p>
               </div>
               <div>
                 <p className="g-label">Carbs</p>
-                <p className="font-mono text-xl font-bold">{preview.nutrition.carbs}g</p>
+                <p className="font-mono text-lg font-bold">{preview.nutrition.carbs}g</p>
               </div>
               <div>
                 <p className="g-label">Fat</p>
-                <p className="font-mono text-xl font-bold">{preview.nutrition.fat}g</p>
+                <p className="font-mono text-lg font-bold">{preview.nutrition.fat}g</p>
               </div>
             </div>
             <p className="text-xs text-asphalt font-bold uppercase">

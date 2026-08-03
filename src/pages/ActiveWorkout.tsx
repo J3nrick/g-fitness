@@ -141,13 +141,13 @@ export function ActiveWorkout() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard flex items-end justify-between">
+      <header className="border-3 border-jet bg-jeepney text-dirty p-3 shadow-hard flex items-end justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest opacity-80">Live Session</p>
-          <h1 className="font-display text-4xl mt-1">BAKAL</h1>
+          <h1 className="font-display text-lg mt-1">BAKAL</h1>
         </div>
         <div className="text-right">
-          <p className="font-mono text-2xl font-bold">{formatDuration(elapsed)}</p>
+          <p className="font-mono text-lg font-bold">{formatDuration(elapsed)}</p>
           <p className="text-xs">{doneCount}/{rows.length} sets</p>
         </div>
       </header>
@@ -224,7 +224,7 @@ export function ActiveWorkout() {
       {!showFinishConfirm ? (
         <button
           type="button"
-          className="g-btn-primary w-full text-xl py-4"
+          className="g-btn-primary w-full text-sm py-2.5"
           onClick={() => {
             if (doneCount === 0) {
               if (window.confirm('No sets completed. Finish anyway?')) finish()

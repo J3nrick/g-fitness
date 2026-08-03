@@ -24,11 +24,11 @@ export function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-dirty p-4">
-      <div className="mx-auto max-w-md space-y-5">
-        <div className="border-3 border-jet bg-jeepney text-dirty p-5 shadow-hard">
-          <h1 className="font-display text-4xl">PUMILI NG STYLE</h1>
-          <p className="mt-2 text-sm font-medium">Pwede mong palitan anytime sa Ako.</p>
+    <div className="min-h-screen bg-dirty p-3">
+      <div className="mx-auto max-w-md space-y-3">
+        <div className="border-2 border-jet bg-jeepney text-dirty p-3 shadow-hard">
+          <h1 className="font-display text-lg">PUMILI NG STYLE</h1>
+          <p className="mt-1 text-xs font-medium">Pwede mong palitan anytime sa Ako.</p>
         </div>
         {OPTIONS.map((opt) => (
           <button
@@ -39,7 +39,7 @@ export function Onboarding() {
               selected === opt.id ? 'bg-mango' : 'bg-dirty'
             }`}
           >
-            <p className="font-display text-2xl">{opt.title}</p>
+            <p className="font-display text-lg">{opt.title}</p>
             <p className="text-sm text-asphalt mt-1">{opt.description}</p>
           </button>
         ))}
@@ -47,7 +47,7 @@ export function Onboarding() {
           type="button"
           disabled={!selected || busy}
           onClick={handleContinue}
-          className="g-btn-primary w-full text-xl disabled:opacity-40"
+          className="g-btn-primary w-full text-sm disabled:opacity-40"
         >
           G? TARA.
         </button>

@@ -59,15 +59,15 @@ export function Ako() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-jet text-dirty p-4 shadow-hard">
-        <h1 className="font-display text-5xl">AKO</h1>
-        <p className="mt-2 text-sm">Edit anytime. Rebuild plan anytime.</p>
+      <header className="g-header bg-jet text-dirty">
+        <h1 className="font-display text-lg">AKO</h1>
+        <p className="mt-1 text-xs">Edit anytime. Rebuild plan anytime.</p>
       </header>
 
       <div className="g-card flex items-center gap-4">
         <button
           type="button"
-          className="h-16 w-16 border-3 border-jet bg-mango text-3xl shadow-hardSm"
+          className="h-11 w-11 border-2 border-jet bg-mango text-base shadow-hardSm"
           onClick={() => {
             const emojis = ['💪', '🔥', '🏋️', '🇵🇭', '⚡', '🥊']
             const avatar = emojis[Math.floor(Math.random() * emojis.length)]
@@ -88,7 +88,7 @@ export function Ako() {
       </div>
 
       <div className="g-card space-y-3">
-        <p className="font-display text-xl">BODY</p>
+        <p className="font-display text-base">BODY</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="g-label">Age</label>
@@ -114,7 +114,7 @@ export function Ako() {
       </div>
 
       <div className="g-card space-y-3">
-        <p className="font-display text-xl">GOAL & LEVEL</p>
+        <p className="font-display text-base">GOAL & LEVEL</p>
         <select className="g-input" value={coach.goal} onChange={(e) => patchCoach('goal', e.target.value as FitnessGoal)}>
           <option value="lose_fat">Lose Fat</option>
           <option value="gain_muscle">Gain Muscle</option>
@@ -153,7 +153,7 @@ export function Ako() {
       </div>
 
       <div className="g-card space-y-3">
-        <p className="font-display text-xl">RECOVERY</p>
+        <p className="font-display text-base">RECOVERY</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="g-label">Water (L)</label>
@@ -167,7 +167,7 @@ export function Ako() {
       </div>
 
       <div className="g-card space-y-3">
-        <p className="font-display text-xl">COACHING STYLE</p>
+        <p className="font-display text-base">COACHING STYLE</p>
         <div className="grid grid-cols-3 gap-2">
           {([
             ['chill', '🌱', 'Chill'],
@@ -212,7 +212,7 @@ export function Ako() {
         )}
       </div>
 
-      <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={save}>
+      <button type="button" className="g-btn-primary w-full text-sm py-2.5" onClick={save}>
         SAVE + REBUILD PLAN
       </button>
 

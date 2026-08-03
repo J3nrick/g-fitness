@@ -146,9 +146,9 @@ export function Workout() {
   if (editingPlan) {
     return (
       <div className="g-page">
-        <header className="border-3 border-jet bg-jet text-dirty p-4 shadow-hard">
+        <header className="border-3 border-jet bg-jet text-dirty p-3 shadow-hard">
           <p className="g-label text-dirty/70">Edit Workout</p>
-          <h1 className="font-display text-3xl mt-1">BAKAL</h1>
+          <h1 className="font-display text-lg mt-1">BAKAL</h1>
         </header>
 
         <label className="g-label">Workout Name</label>
@@ -300,9 +300,9 @@ export function Workout() {
   if (editingExercise) {
     return (
       <div className="g-page">
-        <header className="border-3 border-jet bg-jet text-dirty p-4 shadow-hard">
+        <header className="border-3 border-jet bg-jet text-dirty p-3 shadow-hard">
           <p className="g-label text-dirty/70">Exercise</p>
-          <h1 className="font-display text-3xl mt-1">LIBRARY</h1>
+          <h1 className="font-display text-lg mt-1">LIBRARY</h1>
         </header>
         <label className="g-label">Name</label>
         <input
@@ -347,8 +347,8 @@ export function Workout() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-jeepney text-dirty p-4 shadow-hard">
-        <h1 className="font-display text-5xl">BAKAL</h1>
+      <header className="border-3 border-jet bg-jeepney text-dirty p-3 shadow-hard">
+        <h1 className="font-display text-lg">BAKAL</h1>
         <p className="mt-2 text-sm font-medium">Build. Edit. Duplicate. Delete. Yours.</p>
       </header>
 
@@ -407,7 +407,7 @@ export function Workout() {
               <div key={plan.id} className="g-card space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-display text-2xl">{plan.name}</h2>
+                    <h2 className="font-display text-lg">{plan.name}</h2>
                     <p className="text-sm text-asphalt mt-1">
                       {plan.items.length} exercises · {plan.description || 'No notes'}
                     </p>

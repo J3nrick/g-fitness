@@ -28,12 +28,12 @@ export default {
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        hard: '4px 4px 0 0 #111111',
+        hard: '3px 3px 0 0 #111111',
         hardSm: '2px 2px 0 0 #111111',
-        hardLg: '6px 6px 0 0 #111111',
+        hardLg: '4px 4px 0 0 #111111',
       },
       borderWidth: {
-        3: '3px',
+        3: '2px',
       },
     },
   },

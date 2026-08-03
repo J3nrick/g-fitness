@@ -55,7 +55,7 @@ export function DynamicQuoteCard() {
           <span className="g-label">{triggerLabel}</span>
         </div>
       </div>
-      <p className="font-display text-xl leading-snug">"{quote}"</p>
+      <p className="font-display text-base leading-snug">"{quote}"</p>
     </div>
   )
 }

@@ -40,14 +40,14 @@ export function Dashboard() {
     return (
       <div className="g-page">
         <header className="space-y-3">
-          <BrandLogo className="w-full" />
+          <BrandLogo className="w-full max-h-20 object-cover" />
           <p className="text-sm font-bold text-center">Walang guesswork. Sundan mo lang.</p>
         </header>
         <div className="g-card">
           <p className="font-bold">Gusto mong magbago. Ano ang dapat mong gawin simula ngayon?</p>
           <p className="text-sm text-asphalt mt-2">Sagutin ang short setup — G! will build your plan.</p>
         </div>
-        <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={() => navigate('/setup')}>
+        <button type="button" className="g-btn-primary w-full text-sm py-2.5" onClick={() => navigate('/setup')}>
           START SETUP
         </button>
       </div>
@@ -57,7 +57,7 @@ export function Dashboard() {
   return (
     <div className="g-page">
       <header className="space-y-3">
-        <BrandLogo className="w-full" />
+        <BrandLogo className="w-full max-h-20 object-cover" />
         <p className="text-xs font-bold uppercase tracking-widest text-asphalt">{getGreeting()}</p>
         <p className="text-sm font-medium">
           {coach.name || ext.nickname} · {goalLabel(coach.goal)} · {coach.experience}
@@ -66,7 +66,7 @@ export function Dashboard() {
 
       <div className="g-card bg-mango space-y-2">
         <p className="g-label text-jet">Today&apos;s Plan · {today.weekday}</p>
-        <p className="font-display text-3xl text-jet">
+        <p className="font-display text-lg text-jet">
           {today.isRest ? 'REST DAY' : today.focus.toUpperCase()}
         </p>
         <p className="text-sm font-medium text-jet/80">{today.coachingLine}</p>
@@ -95,7 +95,7 @@ export function Dashboard() {
       <div className="g-card flex items-end justify-between bg-concrete">
         <div>
           <p className="g-label">Streak</p>
-          <p className="font-mono text-4xl font-bold">{streak}</p>
+          <p className="font-mono text-lg font-bold">{streak}</p>
         </div>
         <div className="text-right text-xs font-bold uppercase text-asphalt">
           <p>C {nutrition.carbs}g</p>
@@ -106,7 +106,7 @@ export function Dashboard() {
       {!today.isRest && today.plan ? (
         <button
           type="button"
-          className="g-btn-primary w-full text-2xl py-5"
+          className="g-btn-primary w-full text-base py-2.5"
           onClick={() => navigate(`/bakal/active?plan=${today.plan!.id}`)}
         >
           START {today.focus.toUpperCase()}
@@ -114,14 +114,14 @@ export function Dashboard() {
       ) : (
         <button
           type="button"
-          className="g-btn-accent w-full text-xl py-4"
+          className="g-btn-accent w-full text-sm py-2.5"
           onClick={() => navigate('/katamad')}
         >
           OPEN KATAMAD TODAY
         </button>
       )}
 
-      <button type="button" className="g-btn-primary w-full text-xl py-4" onClick={() => navigate('/coach')}>
+      <button type="button" className="g-btn-primary w-full text-sm py-2.5" onClick={() => navigate('/coach')}>
         ASK G! COACH
       </button>
 

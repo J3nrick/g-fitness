@@ -115,8 +115,8 @@ export function Progress() {
 
   return (
     <div className="g-page">
-      <header className="border-3 border-jet bg-malunggay text-dirty p-4 shadow-hard">
-        <h1 className="font-display text-5xl">PROGRESS</h1>
+      <header className="border-3 border-jet bg-malunggay text-dirty p-3 shadow-hard">
+        <h1 className="font-display text-lg">PROGRESS</h1>
         <p className="mt-2 text-sm font-medium">
           Target: {ext.target_weight} kg · Current: {ext.current_weight} kg
         </p>
@@ -153,7 +153,7 @@ export function Progress() {
         <Flame size={28} className="text-traffic" />
         <div>
           <p className="g-label">Workout Streak</p>
-          <p className="font-mono text-3xl font-bold">
+          <p className="font-mono text-lg font-bold">
             {streak}
             <span className="text-sm font-sans text-asphalt ml-1">days</span>
           </p>

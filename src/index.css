@@ -2,49 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply text-sm leading-relaxed antialiased;
+  }
+}
+
 @layer components {
   .g-page {
-    @apply space-y-5;
+    @apply space-y-3;
   }
 
   .g-poster {
-    @apply font-display uppercase tracking-tight text-jet leading-none;
+    @apply font-display uppercase tracking-tight text-jet leading-none text-xl;
   }
 
   .g-label {
-    @apply font-sans text-xs font-bold uppercase tracking-widest text-asphalt;
+    @apply font-sans text-[10px] font-bold uppercase tracking-wider text-asphalt;
   }
 
   .g-card {
-    @apply bg-concrete border-3 border-jet shadow-hard p-4;
+    @apply bg-concrete border-2 border-jet shadow-hardSm p-3;
   }
 
   .g-card-white {
-    @apply bg-dirty border-3 border-jet shadow-hard p-4;
+    @apply bg-dirty border-2 border-jet shadow-hardSm p-3;
+  }
+
+  .g-header {
+    @apply border-2 border-jet p-3 shadow-hardSm;
+  }
+
+  .g-title {
+    @apply font-display uppercase tracking-tight text-xl leading-none;
   }
 
   .g-btn {
-    @apply border-3 border-jet font-display uppercase tracking-wide transition-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+    @apply border-2 border-jet font-display uppercase tracking-wide text-sm transition-none active:translate-x-[1px] active:translate-y-[1px] active:shadow-none;
   }
 
   .g-btn-primary {
-    @apply g-btn bg-jeepney text-dirty shadow-hard px-4 py-3;
+    @apply g-btn bg-jeepney text-dirty shadow-hardSm px-3 py-2;
   }
 
   .g-btn-accent {
-    @apply g-btn bg-mango text-jet shadow-hard px-4 py-3;
+    @apply g-btn bg-mango text-jet shadow-hardSm px-3 py-2;
   }
 
   .g-btn-ghost {
-    @apply g-btn bg-dirty text-jet shadow-hardSm px-3 py-2;
+    @apply g-btn bg-dirty text-jet shadow-hardSm px-2.5 py-1.5;
   }
 
   .g-input {
-    @apply w-full border-3 border-jet bg-dirty px-3 py-2.5 font-sans text-jet outline-none placeholder:text-asphalt focus:bg-white;
+    @apply w-full border-2 border-jet bg-dirty px-2.5 py-2 font-sans text-sm text-jet outline-none placeholder:text-asphalt focus:bg-white;
   }
 
   .g-check {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center border-3 border-jet bg-dirty;
+    @apply flex h-6 w-6 shrink-0 items-center justify-center border-2 border-jet bg-dirty;
   }
 
   .g-check-on {
@@ -55,9 +74,9 @@
 body {
   background-color: #F5F1E8;
   background-image:
-    linear-gradient(#11111111 1px, transparent 1px),
-    linear-gradient(90deg, #11111111 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(#1111110d 1px, transparent 1px),
+    linear-gradient(90deg, #1111110d 1px, transparent 1px);
+  background-size: 20px 20px;
   color: #111111;
   font-family: 'IBM Plex Sans', Arial, sans-serif;
   min-height: 100vh;
