@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts"
-import { callGeminiGenerate, getGeminiApiKey, parseGeminiErrorMessage } from "../_shared/gemini.ts"
+import { callClaude, getAnthropicApiKey, parseClaudeErrorMessage } from "../_shared/claude.ts"
 
 const SYSTEM_PROMPT = `You are a precise nutrition AI. Analyze this food image.
 Identify EACH distinct food item visible and estimate weight and macros for each.
@@ -80,12 +80,11 @@ Deno.serve(async (req) => {
       data: { user },
     } = await supabase.auth.getUser()
 
-    const apiKey = getGeminiApiKey()
-    const result = await callGeminiGenerate({
+    const apiKey = getAnthropicApiKey()
+    const result = await callClaude({
       apiKey,
-      temperature: 0.2,
-      maxOutputTokens: 2048,
-      responseMimeType: "application/json",
+      maxTokens: 16000,
+      json: true,
       contents: [
         {
           role: "user",
@@ -103,7 +102,7 @@ Deno.serve(async (req) => {
     })
 
     if (!result.ok) {
-      return errorResponse(parseGeminiErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
+      return errorResponse(parseClaudeErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
     }
 
     let parsed: unknown
@@ -183,9 +182,9 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("meal-scan error:", err)
     const msg = err instanceof Error ? err.message : "Unexpected server error"
-    if (/GEMINI_API_KEY/.test(msg)) {
+    if (/ANTHROPIC_API_KEY/.test(msg)) {
       return errorResponse(
-        "GEMINI_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.",
+        "ANTHROPIC_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.",
         500,
       )
     }

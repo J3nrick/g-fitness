@@ -17,107 +17,100 @@ export function errorResponse(message: string, status = 400, extra?: Record<stri
   return jsonResponse({ error: message, ...extra }, status)
 }
 
-const GEMINI_MODELS = [
-  'gemini-flash-latest',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-]
+import Anthropic from "npm:@anthropic-ai/sdk"
 
-export function getGeminiApiKey(): string {
-  const key = Deno.env.get('GEMINI_API_KEY')?.trim()
+export const CLAUDE_MODEL = "claude-opus-5-5"
+
+type Part = { text?: string; inlineData?: { mimeType: string; data: string } }
+type Content = { role: string; parts: Part[] }
+
+export function getAnthropicApiKey(): string {
+  const key = Deno.env.get("ANTHROPIC_API_KEY")?.trim()
   if (!key) {
-    throw new Error('GEMINI_API_KEY secret is not set on this Supabase project')
+    throw new Error("ANTHROPIC_API_KEY secret is not set on this Supabase project")
   }
   return key
 }
 
-export async function callGeminiGenerate(opts: {
-  apiKey: string
-  systemPrompt?: string
-  contents: unknown[]
-  responseMimeType?: string
-  temperature?: number
-  maxOutputTokens?: number
-}): Promise<{ ok: true; text: string; model: string } | { ok: false; status: number; body: string }> {
-  let lastStatus = 500
-  let lastBody = 'No model available'
-
-  for (const model of GEMINI_MODELS) {
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
-      `?key=${encodeURIComponent(opts.apiKey)}`
-
-    const body: Record<string, unknown> = {
-      contents: opts.contents,
-      generationConfig: {
-        temperature: opts.temperature ?? 0.7,
-        maxOutputTokens: opts.maxOutputTokens ?? 1024,
-        ...(opts.responseMimeType ? { responseMimeType: opts.responseMimeType } : {}),
-      },
+function toMessages(contents: Content[]): Anthropic.MessageParam[] {
+  const messages: Anthropic.MessageParam[] = []
+  for (const c of contents) {
+    const role = c.role === "user" ? "user" : "assistant"
+    const blocks: Anthropic.ContentBlockParam[] = []
+    for (const p of c.parts) {
+      if (p.inlineData) {
+        blocks.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: p.inlineData.mimeType as Anthropic.Base64ImageSource["media_type"],
+            data: p.inlineData.data,
+          },
+        })
+      } else if (p.text) {
+        blocks.push({ type: "text", text: p.text })
+      }
     }
-    if (opts.systemPrompt) {
-      body.systemInstruction = { parts: [{ text: opts.systemPrompt }] }
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-
-    const textBody = await response.text()
-    if (!response.ok) {
-      lastStatus = response.status
-      lastBody = textBody
-      // Auth failures stop; rate limits try next model
-      if (response.status === 401 || response.status === 403) {
-        return { ok: false, status: response.status, body: textBody }
-      }
-      if (response.status === 400 && /API key/i.test(textBody)) {
-        return { ok: false, status: response.status, body: textBody }
-      }
-      continue
-    }
-
-    try {
-      const data = JSON.parse(textBody) as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-        promptFeedback?: { blockReason?: string }
-      }
-      if (data.promptFeedback?.blockReason) {
-        return {
-          ok: false,
-          status: 400,
-          body: JSON.stringify({ error: { message: `Blocked: ${data.promptFeedback.blockReason}` } }),
-        }
-      }
-      const text =
-        data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
-      if (!text.trim()) {
-        lastStatus = 200
-        lastBody = 'Empty model response'
-        continue
-      }
-      return { ok: true, text: text.trim(), model }
-    } catch {
-      lastStatus = response.status
-      lastBody = textBody.slice(0, 300)
-    }
+    if (blocks.length) messages.push({ role, content: blocks })
   }
-
-  return { ok: false, status: lastStatus, body: lastBody }
+  // API requires the first turn to be from the user
+  while (messages.length && messages[0].role !== "user") messages.shift()
+  return messages
 }
 
-export function parseGeminiErrorMessage(status: number, body: string): string {
+/** Calls Claude. `contents` uses the user/model + parts shape the edge functions already build. */
+export async function callClaude(opts: {
+  apiKey: string
+  systemPrompt?: string
+  contents: Content[]
+  json?: boolean
+  maxTokens?: number
+  effort?: "low" | "medium" | "high"
+}): Promise<{ ok: true; text: string; model: string } | { ok: false; status: number; body: string }> {
+  const client = new Anthropic({ apiKey: opts.apiKey })
+  const system = [
+    opts.systemPrompt ?? "",
+    opts.json ? "Respond with ONLY valid JSON. No markdown fences, no commentary." : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+
+  try {
+    const message = await client.messages
+      .stream({
+        model: CLAUDE_MODEL,
+        max_tokens: opts.maxTokens ?? 16000,
+        output_config: { effort: opts.effort ?? "low" },
+        ...(system ? { system } : {}),
+        messages: toMessages(opts.contents),
+      })
+      .finalMessage()
+
+    if (message.stop_reason === "refusal") {
+      return { ok: false, status: 400, body: JSON.stringify({ error: { message: "Claude declined this request." } }) }
+    }
+    const text = message.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join("")
+      .trim()
+    if (!text) return { ok: false, status: 502, body: "Empty model response" }
+    return { ok: true, text, model: message.model }
+  } catch (err) {
+    if (err instanceof Anthropic.APIError) {
+      return { ok: false, status: err.status ?? 500, body: JSON.stringify({ error: { message: err.message } }) }
+    }
+    return { ok: false, status: 500, body: err instanceof Error ? err.message : "Claude request failed" }
+  }
+}
+
+export function parseClaudeErrorMessage(status: number, body: string): string {
+  if (status === 429) return "Rate limit. Hintayin mo sandali tapos try again."
+  if (status === 401 || status === 403) return "Anthropic API key rejected. Check ANTHROPIC_API_KEY secret."
   try {
     const json = JSON.parse(body) as { error?: { message?: string } }
-    const msg = json.error?.message ?? body
-    if (status === 429) return 'Rate limit / quota. Hintayin mo sandali tapos try again.'
-    if (status === 401 || status === 403) return 'Gemini API key rejected. Check GEMINI_API_KEY secret.'
-    return msg.slice(0, 200)
+    return (json.error?.message ?? body).slice(0, 200)
   } catch {
-    if (status === 429) return 'Rate limit / quota. Hintayin mo sandali tapos try again.'
-    return `Gemini error ${status}`
+    return body.slice(0, 200) || `Claude error ${status}`
   }
 }
 
@@ -212,18 +205,17 @@ Rules:
       `Build a ${days}-day routine for ~${duration} min sessions.`,
     ].join("\n")
 
-    const apiKey = getGeminiApiKey()
-    const result = await callGeminiGenerate({
+    const apiKey = getAnthropicApiKey()
+    const result = await callClaude({
       apiKey,
       systemPrompt: system,
-      temperature: 0.4,
-      maxOutputTokens: 2500,
-      responseMimeType: "application/json",
+      maxTokens: 16000,
+      json: true,
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
     })
 
     if (!result.ok) {
-      return errorResponse(parseGeminiErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
+      return errorResponse(parseClaudeErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
     }
 
     let parsed: Record<string, unknown>
@@ -270,8 +262,8 @@ Rules:
   } catch (err) {
     console.error("routine-generator error:", err)
     const msg = err instanceof Error ? err.message : "Unexpected server error"
-    if (/GEMINI_API_KEY/.test(msg)) {
-      return errorResponse("GEMINI_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.", 500)
+    if (/ANTHROPIC_API_KEY/.test(msg)) {
+      return errorResponse("ANTHROPIC_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.", 500)
     }
     return errorResponse(msg, 500)
   }

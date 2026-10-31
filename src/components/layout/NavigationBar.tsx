@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { BrandMark } from '../BrandLogo'
 import { Dumbbell, UtensilsCrossed, Bot, User } from 'lucide-react'
 
 const tabs = [
@@ -28,7 +29,7 @@ export function NavigationBar() {
                 {Icon ? (
                   <Icon size={15} strokeWidth={2.25} />
                 ) : (
-                  <img src="/favicon.png" alt="" className="h-[15px] w-[15px] object-cover border border-jet" />
+                  <BrandMark className="h-[15px] w-[15px]" title="" />
                 )}
                 <span>{label}</span>
               </NavLink>

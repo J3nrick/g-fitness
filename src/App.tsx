@@ -16,6 +16,7 @@ import { Progress } from './pages/Progress'
 import { AUTH_BYPASS } from './lib/demoMode'
 import { isCompanionReady } from './lib/store'
 import { BrandMark } from './components/BrandLogo'
+import { SplashScreen } from './components/SplashScreen'
 
 function LoadingMark() {
   return (
@@ -97,6 +98,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
+        <SplashScreen />
         <Routes>
           <Route
             path="/auth"
