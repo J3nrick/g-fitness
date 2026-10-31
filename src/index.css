@@ -91,3 +91,30 @@ body {
   background: #F4B400;
   color: #111111;
 }
+
+/* ---------- Splash ---------- */
+.g-splash-mark { animation: g-drop 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.g-splash-shadow { animation: g-shadow 300ms ease-out 550ms both; }
+.g-splash-g { stroke-dasharray: 1; animation: g-draw 550ms cubic-bezier(0.65, 0, 0.35, 1) 450ms both; }
+.g-splash-bang { transform-box: fill-box; transform-origin: bottom; animation: g-slam 380ms cubic-bezier(0.34, 1.56, 0.64, 1) 850ms both; }
+.g-splash-dot { transform-box: fill-box; transform-origin: center; animation: g-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) 1050ms both; }
+.g-splash-word { animation: g-rise 380ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.g-splash-bar { transform-origin: left; animation: g-fill 2200ms cubic-bezier(0.65, 0, 0.35, 1) 300ms both; }
+.g-stripe { animation: g-swipe 600ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.g-stripe-rev { animation-name: g-swipe-rev; }
+.g-splash-exit { animation: g-exit 450ms cubic-bezier(0.65, 0, 0.35, 1) both; }
+
+@keyframes g-drop { from { opacity: 0; transform: translateY(-60px) rotate(-8deg) scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes g-shadow { from { opacity: 0; transform: translate(-5px, -5px); } to { opacity: 1; transform: none; } }
+@keyframes g-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes g-slam { from { opacity: 0; transform: scaleY(0); } to { opacity: 1; transform: none; } }
+@keyframes g-pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: none; } }
+@keyframes g-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes g-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes g-swipe { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes g-swipe-rev { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes g-exit { to { transform: translateY(-100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .g-splash *, .g-splash { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+}
