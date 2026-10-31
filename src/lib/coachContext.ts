@@ -60,7 +60,7 @@ function mealTotals(logs: MealEntry[]) {
   )
 }
 
-/** Compact, factual snapshot sent to Gemini — never invent beyond this. */
+/** Compact, factual snapshot sent to Claude — never invent beyond this. */
 export function buildCoachContext(): string {
   const coach = getCoachProfile() ?? DEFAULT_COACH
   const ext = getExtProfile()

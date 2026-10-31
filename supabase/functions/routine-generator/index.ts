@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts"
-import { callGeminiGenerate, getGeminiApiKey, parseGeminiErrorMessage } from "../_shared/gemini.ts"
+import { callClaude, getAnthropicApiKey, parseClaudeErrorMessage } from "../_shared/claude.ts"
 
 interface ProfileInput {
   goal?: string
@@ -92,18 +92,17 @@ Rules:
       `Build a ${days}-day routine for ~${duration} min sessions.`,
     ].join("\n")
 
-    const apiKey = getGeminiApiKey()
-    const result = await callGeminiGenerate({
+    const apiKey = getAnthropicApiKey()
+    const result = await callClaude({
       apiKey,
       systemPrompt: system,
-      temperature: 0.4,
-      maxOutputTokens: 2500,
-      responseMimeType: "application/json",
+      maxTokens: 16000,
+      json: true,
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
     })
 
     if (!result.ok) {
-      return errorResponse(parseGeminiErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
+      return errorResponse(parseClaudeErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
     }
 
     let parsed: Record<string, unknown>
@@ -150,8 +149,8 @@ Rules:
   } catch (err) {
     console.error("routine-generator error:", err)
     const msg = err instanceof Error ? err.message : "Unexpected server error"
-    if (/GEMINI_API_KEY/.test(msg)) {
-      return errorResponse("GEMINI_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.", 500)
+    if (/ANTHROPIC_API_KEY/.test(msg)) {
+      return errorResponse("ANTHROPIC_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.", 500)
     }
     return errorResponse(msg, 500)
   }

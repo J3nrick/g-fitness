@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getGreeting } from '../lib/utils'
+import { BrandLogo, BrandMark } from '../components/BrandLogo'
 import { DynamicQuoteCard } from '../components/dashboard/DynamicQuoteCard'
 import {
   DEFAULT_COACH,
@@ -53,8 +54,8 @@ export function Dashboard() {
   if (!ready) {
     return (
       <div className="g-page">
-        <header className="space-y-1">
-          <p className="font-display text-2xl leading-none tracking-tight">G!</p>
+        <header className="space-y-2">
+          <BrandLogo />
           <p className="text-xs font-bold uppercase tracking-wider text-asphalt">
             Walang guesswork. Sundan mo lang.
           </p>
@@ -85,7 +86,10 @@ export function Dashboard() {
           <p className="text-[10px] font-bold uppercase tracking-widest text-asphalt">
             {getGreeting()}
           </p>
-          <h1 className="font-display text-2xl leading-none tracking-tight">G!</h1>
+          <h1 className="flex items-center gap-2 font-display text-2xl leading-none tracking-tight">
+            <BrandMark className="h-7 w-7" title="" />
+            G!
+          </h1>
           <p className="truncate text-sm text-asphalt">
             {coach.name || ext.nickname} · {goalLabel(coach.goal)} · {coach.experience}
           </p>

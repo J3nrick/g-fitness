@@ -3,7 +3,7 @@ import path from 'path'
 
 const root = path.join(process.cwd(), 'supabase', 'functions')
 const cors = fs.readFileSync(path.join(root, '_shared', 'cors.ts'), 'utf8')
-const gemini = fs.readFileSync(path.join(root, '_shared', 'gemini.ts'), 'utf8')
+const gemini = fs.readFileSync(path.join(root, '_shared', 'claude.ts'), 'utf8')
 
 for (const name of ['nutrition-coach', 'routine-generator', 'progress-analysis']) {
   const lines = fs.readFileSync(path.join(root, name, 'index.ts'), 'utf8').split(/\n/)
@@ -15,7 +15,7 @@ for (const name of ['nutrition-coach', 'routine-generator', 'progress-analysis']
   for (const line of lines) {
     if (line.includes('edge-runtime.d.ts')) continue
     if (line.includes('_shared/cors')) continue
-    if (line.includes('_shared/gemini')) continue
+    if (line.includes('_shared/claude')) continue
     out.push(line)
   }
   const content = out.join('\n')

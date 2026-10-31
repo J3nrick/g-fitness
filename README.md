@@ -1,32 +1,34 @@
-# React + TypeScript + Vite
+# G! — Tara. Train. Fuel. Grow.
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Filipino-first fitness companion: workouts, meals, streaks and an AI coach.
+React 19 + Vite + Tailwind, Supabase for auth/data/Edge Functions, **Claude (`claude-opus-5-5`)** for all AI.
 
-Currently, two official plugins are available:
+## AI features (Claude)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Feature | Edge Function | What Claude does |
+|---|---|---|
+| G! Coach chat | `ai-chat` | Coaching chat grounded in your logged data |
+| Meal scan | `meal-scan` | Vision: identifies foods in a photo + estimates macros |
+| Meal plan | `nutrition-coach` | Suggests Filipino meals that fit remaining macros |
+| Routine builder | `routine-generator` | Builds a weekly training split |
+| Progress report | `progress-analysis` | 30/60/90-day review with a score |
 
-## React Compiler
+Shared helper: `supabase/functions/_shared/claude.ts`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Setup
 
-## Expanding the Oxlint configuration
+1. Set the Edge secret (production path — key stays server-side):
+   ```bash
+   npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+   ```
+2. Redeploy functions: `npx supabase functions deploy ai-chat meal-scan nutrition-coach routine-generator progress-analysis`
+3. Local/demo only: `VITE_ANTHROPIC_API_KEY` in `.env.local` enables a browser fallback when the Edge Function is unreachable. Never ship this in a public build — it exposes the key.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Dev
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`.env.local` needs `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; `VITE_AUTH_BYPASS=true` runs demo mode.

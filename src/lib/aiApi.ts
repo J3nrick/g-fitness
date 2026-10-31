@@ -2,10 +2,10 @@ import { supabase } from './supabase'
 import type { ScannedResult } from '../hooks/useFoodScanner'
 import { buildSystemPrompt } from './coachContext'
 import {
-  callGeminiClient,
-  getClientGeminiKey,
-  parseClientGeminiError,
-} from './geminiClient'
+  callClaudeClient,
+  getClientClaudeKey,
+  parseClientClaudeError,
+} from './claudeClient'
 
 export class AiApiError extends Error {
   status?: number
@@ -38,7 +38,7 @@ async function readInvokeError(error: unknown, data: unknown): Promise<string> {
 }
 
 function shouldFallbackToClient(message: string): boolean {
-  return /GEMINI_API_KEY|Missing Authorization|secret is missing|Edge Function|non-2xx|Failed to send/i.test(
+  return /ANTHROPIC_API_KEY|Missing Authorization|secret is missing|Edge Function|non-2xx|Failed to send/i.test(
     message,
   )
 }
@@ -88,22 +88,21 @@ export async function invokeAiChat(input: {
   }
 
   const edgeMsg = edge.ok ? edge.data.error || 'Empty coach reply' : edge.message
-  if (!shouldFallbackToClient(edgeMsg) && getClientGeminiKey()) {
+  if (!shouldFallbackToClient(edgeMsg) && getClientClaudeKey()) {
     // still try client if we have a key and edge failed for any reason in demo
   }
-  if (!getClientGeminiKey()) {
+  if (!getClientClaudeKey()) {
     throw new AiApiError(
-      edgeMsg.includes('GEMINI')
+      edgeMsg.includes('ANTHROPIC')
         ? edgeMsg
-        : `${edgeMsg} — Set GEMINI_API_KEY in Supabase Secrets, or VITE_GEMINI_API_KEY in .env.local.`,
+        : `${edgeMsg} — Set ANTHROPIC_API_KEY in Supabase Secrets, or VITE_ANTHROPIC_API_KEY in .env.local.`,
       502,
     )
   }
 
-  const result = await callGeminiClient({
+  const result = await callClaudeClient({
     systemPrompt: buildSystemPrompt(),
-    temperature: 0.7,
-    maxOutputTokens: 1024,
+    maxTokens: 16000,
     contents: [
       ...input.history.slice(-12).map((m) => ({
         role: m.role === 'user' ? 'user' : 'model',
@@ -123,7 +122,7 @@ export async function invokeAiChat(input: {
   })
 
   if (!result.ok) {
-    throw new AiApiError(parseClientGeminiError(result.status, result.body), result.status)
+    throw new AiApiError(parseClientClaudeError(result.status, result.body), result.status)
   }
   return { reply: result.text, model: result.model, conversationId: null }
 }
@@ -151,9 +150,9 @@ export async function invokeMealScan(
     ? edge.data.error || 'Empty meal scan response'
     : edge.message
 
-  if (!getClientGeminiKey()) {
+  if (!getClientClaudeKey()) {
     throw new AiApiError(
-      `${edgeMsg} — Set GEMINI_API_KEY in Supabase Secrets, or VITE_GEMINI_API_KEY in .env.local.`,
+      `${edgeMsg} — Set ANTHROPIC_API_KEY in Supabase Secrets, or VITE_ANTHROPIC_API_KEY in .env.local.`,
       502,
     )
   }
@@ -162,10 +161,9 @@ export async function invokeMealScan(
   const mimeMatch = imageBase64.match(/^data:(image\/[\w+.-]+);base64,/)
   const mimeType = mimeMatch?.[1] ?? 'image/jpeg'
 
-  const result = await callGeminiClient({
-    temperature: 0.2,
-    maxOutputTokens: 2048,
-    responseMimeType: 'application/json',
+  const result = await callClaudeClient({
+    maxTokens: 16000,
+    json: true,
     contents: [
       {
         role: 'user',
@@ -178,7 +176,7 @@ export async function invokeMealScan(
   })
 
   if (!result.ok) {
-    throw new AiApiError(parseClientGeminiError(result.status, result.body), result.status)
+    throw new AiApiError(parseClientClaudeError(result.status, result.body), result.status)
   }
 
   let parsed: Record<string, unknown>
@@ -260,14 +258,13 @@ export async function invokeNutritionCoach(input: {
     }
   }
 
-  if (!getClientGeminiKey()) {
+  if (!getClientClaudeKey()) {
     throw new AiApiError(edge.ok ? edge.data.error || 'Nutrition coach failed' : edge.message, 502)
   }
 
-  const result = await callGeminiClient({
-    temperature: 0.5,
-    maxOutputTokens: 1200,
-    responseMimeType: 'application/json',
+  const result = await callClaudeClient({
+    maxTokens: 16000,
+    json: true,
     systemPrompt: `You are G! Nutrition Coach. Style: ${input.coachingStyle}. Prefer Filipino meals. Return ONLY JSON: {"reply":"string","meals":[{"name":"string","meal_type":"breakfast|lunch|dinner|snack","calories":number,"protein":number,"carbs":number,"fat":number,"notes":"string"}],"focus":"string"}`,
     contents: [
       {
@@ -280,7 +277,7 @@ export async function invokeNutritionCoach(input: {
       },
     ],
   })
-  if (!result.ok) throw new AiApiError(parseClientGeminiError(result.status, result.body), result.status)
+  if (!result.ok) throw new AiApiError(parseClientClaudeError(result.status, result.body), result.status)
   const parsed = JSON.parse(result.text.replace(/```json\s*|```/g, '').trim()) as {
     reply?: string
     meals?: unknown[]
@@ -332,16 +329,15 @@ export async function invokeRoutineGenerator(input: {
     }
   }
 
-  if (!getClientGeminiKey()) {
+  if (!getClientClaudeKey()) {
     throw new AiApiError(edge.ok ? edge.data.error || 'Routine generator failed' : edge.message, 502)
   }
 
   const days = Number(input.profile.days_per_week) || 3
   const duration = Number(input.profile.duration_mins) || 45
-  const result = await callGeminiClient({
-    temperature: 0.4,
-    maxOutputTokens: 2500,
-    responseMimeType: 'application/json',
+  const result = await callClaudeClient({
+    maxTokens: 16000,
+    json: true,
     systemPrompt: `You are G! Strength Coach. Style: ${input.coachingStyle}. Return ONLY JSON with summary, plans[${days}], week[7 days]. Each plan 4-7 exercises for ~${duration} min.`,
     contents: [
       {
@@ -350,7 +346,7 @@ export async function invokeRoutineGenerator(input: {
       },
     ],
   })
-  if (!result.ok) throw new AiApiError(parseClientGeminiError(result.status, result.body), result.status)
+  if (!result.ok) throw new AiApiError(parseClientClaudeError(result.status, result.body), result.status)
   const parsed = JSON.parse(result.text.replace(/```json\s*|```/g, '').trim()) as {
     summary?: string
     plans?: unknown[]
@@ -400,14 +396,13 @@ export async function invokeProgressAnalysis(input: {
     return edge.data as never
   }
 
-  if (!getClientGeminiKey()) {
+  if (!getClientClaudeKey()) {
     throw new AiApiError(edge.ok ? edge.data.error || 'Progress analysis failed' : edge.message, 502)
   }
 
-  const result = await callGeminiClient({
-    temperature: 0.4,
-    maxOutputTokens: 1600,
-    responseMimeType: 'application/json',
+  const result = await callClaudeClient({
+    maxTokens: 16000,
+    json: true,
     systemPrompt: `You are G! Progress Analyst. Style: ${input.coachingStyle}. Never invent data. Return ONLY JSON: period_days, summary, consistency, strength, nutrition, recovery, achievements[], missed_goals[], recommendations[], score.`,
     contents: [
       {
@@ -420,7 +415,7 @@ export async function invokeProgressAnalysis(input: {
       },
     ],
   })
-  if (!result.ok) throw new AiApiError(parseClientGeminiError(result.status, result.body), result.status)
+  if (!result.ok) throw new AiApiError(parseClientClaudeError(result.status, result.body), result.status)
   const parsed = JSON.parse(result.text.replace(/```json\s*|```/g, '').trim()) as Record<string, unknown>
   return {
     period_days: Number(parsed.period_days) || input.periodDays,

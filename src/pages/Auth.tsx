@@ -22,7 +22,7 @@ export function Auth() {
   return (
     <div className="min-h-screen bg-dirty flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-5">
-        <BrandLogo className="w-full max-h-20 object-cover" />
+        <BrandLogo />
         <div className="g-card space-y-4">
           <div className="grid grid-cols-2 border-3 border-jet">
             <button

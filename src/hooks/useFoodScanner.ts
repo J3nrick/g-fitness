@@ -19,7 +19,7 @@ export interface ScannedResult {
   total_fat: number
 }
 
-/** Shrink large camera photos so Gemini accepts them reliably. */
+/** Shrink large camera photos so Claude accepts them reliably. */
 async function compressImage(base64Image: string, maxSide = 1280): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image()

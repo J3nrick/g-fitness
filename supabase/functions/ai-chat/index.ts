@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2"
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts"
 import { buildSystemPrompt } from "../_shared/coachPrompt.ts"
-import { callGeminiGenerate, getGeminiApiKey, parseGeminiErrorMessage } from "../_shared/gemini.ts"
+import { callClaude, getAnthropicApiKey, parseClaudeErrorMessage } from "../_shared/claude.ts"
 
 interface ChatHistoryItem {
   role: "user" | "model"
@@ -62,12 +62,11 @@ Deno.serve(async (req) => {
     const style = body.coachingStyle ?? "tropa"
     const history = Array.isArray(body.history) ? body.history.slice(-12) : []
 
-    const apiKey = getGeminiApiKey()
-    const result = await callGeminiGenerate({
+    const apiKey = getAnthropicApiKey()
+    const result = await callClaude({
       apiKey,
       systemPrompt: buildSystemPrompt(style),
-      temperature: 0.7,
-      maxOutputTokens: 1024,
+      maxTokens: 16000,
       contents: [
         ...history.map((m) => ({
           role: m.role === "user" ? "user" : "model",
@@ -87,7 +86,7 @@ Deno.serve(async (req) => {
     })
 
     if (!result.ok) {
-      return errorResponse(parseGeminiErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
+      return errorResponse(parseClaudeErrorMessage(result.status, result.body), result.status === 429 ? 429 : 502)
     }
 
     let conversationId = body.conversationId ?? null
@@ -139,9 +138,9 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("ai-chat error:", err)
     const msg = err instanceof Error ? err.message : "Unexpected server error"
-    if (/GEMINI_API_KEY/.test(msg)) {
+    if (/ANTHROPIC_API_KEY/.test(msg)) {
       return errorResponse(
-        "GEMINI_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.",
+        "ANTHROPIC_API_KEY secret is missing. Set it in Supabase Dashboard → Edge Functions → Secrets.",
         500,
       )
     }

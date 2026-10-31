@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Bot, Dumbbell, LineChart, Send, Trash2, Utensils } from 'lucide-react'
 import { useGCoach, type CoachAction } from '../hooks/useGCoach'
 import { getDailyBriefFacts } from '../lib/coachContext'
+import { BrandMark } from '../components/BrandLogo'
+import { CoachText } from '../components/CoachText'
 
 const QUICK_PROMPTS = [
   'Am I eating enough protein today?',
@@ -49,15 +51,11 @@ export function Coach() {
       <header className="border-3 border-jet bg-jeepney text-dirty p-3 shadow-hard">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-3 min-w-0">
-            <img
-              src="/favicon.png"
-              alt=""
-              className="h-9 w-9 border-2 border-dirty object-cover shrink-0"
-            />
+            <BrandMark className="h-10 w-10" title="" />
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-widest opacity-90">Your AI Coach</p>
               <h1 className="font-display text-lg mt-1">G! COACH</h1>
-              <p className="text-sm mt-1 opacity-90">Kilala ka na niya ? workouts, macros, streak.</p>
+              <p className="text-sm mt-1 opacity-90">Kilala ka na niya — workouts, macros, streak.</p>
             </div>
           </div>
           <button
@@ -125,8 +123,8 @@ export function Coach() {
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`border-3 border-jet p-3 shadow-hardSm whitespace-pre-wrap text-sm leading-relaxed ${
-              m.role === 'user' ? 'bg-mango ml-6' : 'bg-dirty mr-2'
+            className={`border-3 border-jet p-3 shadow-hardSm text-sm leading-relaxed ${
+              m.role === 'user' ? 'whitespace-pre-wrap bg-mango ml-6' : 'bg-dirty mr-2'
             }`}
           >
             {m.role === 'model' && (
@@ -134,12 +132,12 @@ export function Coach() {
                 <Bot size={12} /> G! Coach
               </p>
             )}
-            {m.text}
+            {m.role === 'model' ? <CoachText text={m.text} /> : m.text}
           </div>
         ))}
 
         {loading && (
-          <div className="g-card mr-2 text-sm text-asphalt animate-pulse">Coach is thinking?</div>
+          <div className="g-card mr-2 text-sm text-asphalt animate-pulse">Coach is thinking…</div>
         )}
 
         {error && (
@@ -174,7 +172,7 @@ export function Coach() {
       >
         <input
           className="g-input flex-1"
-          placeholder="Tanong kay Coach?"
+          placeholder="Tanong kay Coach…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
